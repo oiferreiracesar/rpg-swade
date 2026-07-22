@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SWADE Terror — Criador de Personagem</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  :root {
+    --bg: #0d0d0f;
+    --surface: #16161a;
+    --surface2: #1e1e24;
+    --border: #2a2a35;
+    --accent: #c0392b;
+    --accent2: #8e1c13;
+    --gold: #c8890a;
+    --text: #e8e4dc;
+    --muted: #888;
+    --green: #1a7a3a;
+    --blue: #1a3a7a;
+    --purple: #4a1a6a;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Georgia', serif;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ── Header ── */
+  header {
+    background: linear-gradient(135deg, #1a0000 0%, #2d0000 50%, #1a0000 100%);
+    border-bottom: 2px solid var(--accent);
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(192,57,43,.04) 2px, rgba(192,57,43,.04) 4px);
+  }
+  header h1 { font-size: 1.8rem; color: #fff; letter-spacing: 3px; text-shadow: 0 0 20px rgba(192,57,43,.6); }
+  header p  { color: #c8a8a0; font-size: .85rem; margin-top: 5px; letter-spacing: 1px; }
+
+  /* ── Progress bar ── */
+  #progress-bar-wrap {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  #progress-track {
+    flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;
+  }
+  #progress-fill {
+    height: 100%; background: var(--accent); border-radius: 3px;
+    transition: width .4s ease;
+  }
+  #progress-label { font-size: .75rem; color: var(--muted); white-space: nowrap; }
+
+  /* ── Main ── */
+  main { max-width: 780px; margin: 0 auto; padding: 24px 20px; }
+
+  /* ── Step card ── */
+  .step-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px;
+    display: none;
+    animation: fadeIn .35s ease;
+  }
+  .step-card.active { display: block; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+
+  .step-number {
+    font-size: .7rem; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px;
+  }
+  .step-card h2 { font-size: 1.3rem; color: #fff; margin-bottom: 6px; }
+  .step-card .sub { font-size: .85rem; color: var(--muted); margin-bottom: 22px; line-height: 1.5; }
+
+  /* ── Options grid ── */
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .options.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .option {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all .2s;
+    position: relative;
+  }
+  .option:hover { border-color: var(--accent); background: #1e1218; }
+  .option.selected { border-color: var(--accent); background: #1e1218; box-shadow: 0 0 0 2px rgba(192,57,43,.3); }
+  .option.selected::after {
+    content: '✓';
+    position: absolute; top: 10px; right: 14px;
+    color: var(--accent); font-size: 1rem; font-weight: bold;
+  }
+
+  .option-letter {
+    display: inline-block; width: 22px; height: 22px; line-height: 22px; text-align: center;
+    background: var(--accent); color: #fff; border-radius: 50%;
+    font-size: .7rem; font-weight: bold; margin-right: 10px; flex-shrink: 0;
+  }
+  .option-title { font-size: .95rem; color: #fff; display: inline; }
+  .option-desc { font-size: .78rem; color: var(--muted); margin-top: 5px; line-height: 1.4; padding-left: 32px; }
+
+  /* ── Text input ── */
+  .text-input {
+    width: 100%; padding: 12px 14px;
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text); font-size: .95rem; font-family: inherit;
+    transition: border-color .2s;
+    resize: vertical; min-height: 50px;
+  }
+  .text-input:focus { outline: none; border-color: var(--accent); }
+  .input-label { font-size: .8rem; color: var(--muted); margin-bottom: 6px; display: block; }
+
+  /* ── Nav buttons ── */
+  .nav { display: flex; justify-content: space-between; margin-top: 24px; gap: 10px; }
+  .btn {
+    padding: 10px 22px; border-radius: 5px; border: none; cursor: pointer;
+    font-size: .9rem; font-weight: bold; letter-spacing: .5px; transition: all .2s;
+  }
+  .btn-back {
+    background: var(--surface2); color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-back:hover { color: var(--text); border-color: var(--muted); }
+  .btn-next {
+    background: var(--accent); color: #fff; margin-left: auto;
+  }
+  .btn-next:hover { background: var(--accent2); }
+  .btn-next:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+  .btn-generate { background: var(--gold); color: #1a0e00; font-size: 1rem; padding: 12px 28px; }
+  .btn-generate:hover { background: #d99a1a; }
+
+  /* ── Ficha ── */
+  #sheet { display: none; }
+  #sheet.visible { display: block; animation: fadeIn .4s ease; }
+
+  .sheet-header {
+    background: linear-gradient(135deg, #1a0000, #2d0000);
+    border: 2px solid var(--accent);
+    border-radius: 8px;
+    padding: 20px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 18px;
+  }
+  .sheet-header h2 { font-size: 1.4rem; color: #fff; }
+  .sheet-header .genre { font-size: .75rem; color: var(--accent); letter-spacing: 2px; }
+  .sheet-header .player-name { font-size: .85rem; color: var(--muted); }
+
+  .sheet-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .sheet-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+  }
+  .sheet-section.full { grid-column: 1 / -1; }
+  .sheet-section h3 {
+    font-size: .75rem; color: var(--accent); letter-spacing: 2px; text-transform: uppercase;
+    margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border);
+  }
+
+  /* Atributos */
+  .attrs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .attr-box {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 5px;
+    padding: 10px 6px; text-align: center;
+  }
+  .attr-name { font-size: .65rem; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+  .attr-die { font-size: 1.4rem; color: var(--accent); font-weight: bold; margin: 4px 0; }
+  .attr-max { font-size: .6rem; color: var(--border); }
+
+  /* Derivadas */
+  .derived { display: flex; gap: 10px; flex-wrap: wrap; }
+  .derived-box {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 5px;
+    padding: 8px 14px; text-align: center; flex: 1; min-width: 80px;
+  }
+  .derived-label { font-size: .62rem; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+  .derived-val { font-size: 1.2rem; color: #fff; font-weight: bold; }
+
+  /* Perícias */
+  .skills-list { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .skill-row { display: flex; justify-content: space-between; padding: 4px 8px; border-radius: 3px; font-size: .82rem; }
+  .skill-row:nth-child(even) { background: var(--surface2); }
+  .skill-name { color: var(--text); }
+  .skill-die { color: var(--gold); font-weight: bold; }
+
+  /* Vantagens e Complicações */
+  .trait-list { display: flex; flex-direction: column; gap: 6px; }
+  .trait-item {
+    background: var(--surface2); border-left: 3px solid var(--accent);
+    padding: 7px 10px; border-radius: 0 4px 4px 0; font-size: .82rem;
+  }
+  .trait-item.comp { border-left-color: var(--purple); }
+  .trait-name { color: #fff; font-weight: bold; }
+  .trait-desc { color: var(--muted); font-size: .75rem; margin-top: 2px; }
+
+  /* Equipamento */
+  .equip-list { font-size: .82rem; color: var(--text); line-height: 1.8; }
+  .equip-list li { padding: 2px 0; list-style: none; }
+  .equip-list li::before { content: '▸ '; color: var(--accent); }
+
+  /* Bio */
+  .bio-block { font-size: .85rem; color: var(--text); line-height: 1.6; }
+  .bio-label { font-size: .7rem; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; margin-bottom: 3px; }
+
+  /* Pontos de vida visual */
+  .wounds { display: flex; gap: 6px; }
+  .wound-box {
+    width: 28px; height: 28px; border: 2px solid var(--accent);
+    border-radius: 4px; background: var(--surface2);
+  }
+
+  /* Print */
+  .btn-print {
+    background: var(--green); color: #fff; padding: 10px 20px;
+    border: none; border-radius: 5px; cursor: pointer; font-size: .9rem;
+    font-weight: bold;
+  }
+  .btn-print:hover { background: #1d8f40; }
+  .btn-restart {
+    background: var(--surface2); color: var(--muted);
+    border: 1px solid var(--border); padding: 10px 20px;
+    border-radius: 5px; cursor: pointer; font-size: .9rem;
+  }
+  .btn-restart:hover { color: var(--text); }
+
+  .sheet-actions { display: flex; gap: 10px; margin-top: 16px; justify-content: flex-end; }
+
+  /* Conceito destaque */
+  .concept-banner {
+    background: linear-gradient(90deg, #1a0000, #2d0000);
+    border: 1px solid var(--accent);
+    border-radius: 5px;
+    padding: 10px 14px;
+    font-size: .85rem;
+    color: #ffcccc;
+    margin-bottom: 14px;
+    font-style: italic;
+  }
+
+  @media print {
+    body { background: #fff !important; color: #000 !important; }
+    header, #progress-bar-wrap, .questionnaire, .sheet-actions, #pdf-status, .btn-restart, #btn-pdf { display: none !important; }
+    #sheet { display: block !important; background: #fff !important; }
+    .sheet-section { border: 1px solid #ccc !important; background: #fff !important; color: #000 !important; }
+    .sheet-section h3 { color: #8B1A1A !important; border-bottom: 1px solid #ccc !important; }
+    .attr-box { background: #f5f5f5 !important; border: 1px solid #ccc !important; }
+    .attr-die { color: #8B1A1A !important; }
+    .attr-name { color: #555 !important; }
+    .skill-die { color: #7a5a00 !important; }
+    .skill-name { color: #000 !important; }
+    .skill-row:nth-child(even) { background: #f5f5f5 !important; }
+    .trait-item { border-left-color: #8B1A1A !important; background: #f9f9f9 !important; color: #000 !important; }
+    .trait-item.comp { border-left-color: #4A1A6A !important; }
+    .trait-name { color: #000 !important; }
+    .trait-desc { color: #555 !important; }
+    .derived-box { background: #f5f5f5 !important; border: 1px solid #ccc !important; }
+    .derived-label { color: #555 !important; }
+    .derived-val { color: #000 !important; }
+    .wound-box { border-color: #8B1A1A !important; background: #fff !important; }
+    .sheet-header { background: #1a0000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .concept-banner { background: #1a0000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .equip-list li { color: #000 !important; }
+    .equip-list li::before { color: #8B1A1A !important; }
+    .bio-block { color: #000 !important; }
+    .bio-label { color: #8B1A1A !important; }
+    main { padding: 0 !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>☠ CRIADOR DE PERSONAGEM</h1>
+  <p>SAVAGE WORLDS — TERROR NOS DIAS ATUAIS &nbsp;|&nbsp; Responda as perguntas e receba sua ficha pronta</p>
+</header>
+
+<div id="progress-bar-wrap">
+  <div id="progress-track"><div id="progress-fill" style="width:0%"></div></div>
+  <div id="progress-label">Pergunta 1 de 10</div>
+</div>
+
+<main>
+  <div id="questionnaire">
+
+    <!-- ══ PASSO 1: NOME ══ -->
+    <div class="step-card active" data-step="1">
+      <div class="step-number">Parte 1 de 10</div>
+      <h2>Qual é o nome do seu personagem?</h2>
+      <p class="sub">Pode ser um nome real, um apelido ou um pseudônimo. Será como todos vão chamá-lo durante o jogo.</p>
+      <label class="input-label">Nome do personagem</label>
+      <input type="text" class="text-input" id="q1-name" placeholder="Ex: Mariana Costa, 'Dobermann', Dr. Alves...">
+      <div class="nav">
+        <span></span>
+        <button class="btn btn-next" onclick="nextStep()">Próximo →</button>
+      </div>
+    </div>
+
+    <!-- ══ PASSO 2: OCUPAÇÃO ══ -->
+    <div class="step-card" data-step="2">
+      <div class="step-number">Parte 2 de 10</div>
+      <h2>Qual é a ocupação do seu personagem?</h2>
+      <p class="sub">O que ele faz para sobreviver no dia a dia? Isso define suas habilidades principais.</p>
+      <div class="options">
+        <div class="option" onclick="selectOption(this,'ocupacao','medico')">
+          <span class="option-letter">A</span><span class="option-title">Médico ou Paramédico</span>
+          <div class="option-desc">Sabe curar ferimentos, diagnosticar doenças e agir sob pressão. Calmo e metódico.</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'ocupacao','detetive')">
+          <span class="option-letter">B</span><span class="option-title">Detetive ou Investigador</span>
+          <div class="option-desc">Observador, perspicaz, sabe como encontrar pistas e interrogar pessoas.</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'ocupacao','jornalista')">
+          <span class="option-letter">C</span><span class="option-title">Jornalista ou Pesquisador</span>
+          <div class="option-desc">Curioso, bem informado, sabe como buscar informações e convencer fontes a falar.</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'ocupacao','exmilitar')">
+          <span class="option-letter">D</span><span class="option-title">Ex-Militar ou Segurança</span>
+          <div class="option-desc">Treinado para combate, resistente, sabe usar armas e atuar em situações perigosas.</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'ocupacao','tecnico')">
+          <span class="option-letter">E</span><span class="option-title">Técnico ou Hacker</span>
+          <div class="option-desc">Domina tecnologia, sistemas eletrônicos, câmeras, fechaduras digitais e redes.</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'ocupacao','ocultista')">
+          <span class="option-letter">F</span><span class="option-title">Ocultista ou Padre</span>
+          <div class="option-desc">Conhece o sobrenatural, rituais, simbologias e como proteger-se de entidades.</div>
+        </div>
+      </div>
+      <div class="nav">
+        <button class="btn btn-back" onclick="prevStep()">← Voltar</button>
+        <button class="btn btn-next" onclick="nextStep()" disabled id="next-2">Próximo →</button>
+      </div>
+    </div>
+
+    <!-- ══ PASSO 3: PERSONALIDADE ══ -->
+    <div class="step-card" data-step="3">
+      <div class="step-number">Parte 3 de 10</div>
+      <h2>Como seu personagem reage ao perigo?</h2>
+      <p class="sub">Isso define o espírito dele — sua coragem, impulsividade e como os outros o veem.</p>
+      <div class="options">
+        <div class="option" onclick="selectOption(this,'personalidade','corajoso')">
+          <span class="option-letter">A</span><span class="option-title">Age com calma e coragem</span>
+          <div class="option-desc">Não é irracional, mas não foge. Analisa a situação e age com firmeza. (+Espírito)</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'personalidade','impulsivo')">
+          <span class="option-letter">B</span><span class="option-title">Age primeiro, pensa depois</span>
+          <div class="option-desc">Instintivo, rápido e às vezes irresponsável. Frequentemente se mete em encrencas. (+Agilidade)</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'personalidade','analitico')">
+          <span class="option-letter">C</span><span class="option-title">Analisa tudo antes de agir</span>
+          <div class="option-desc">Metódico, racional e cuidadoso. Demora para decidir, mas raramente erra. (+Astúcia)</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'personalidade','lider')">
+          <span class="option-letter">D</span><span class="option-title">Assume o comando naturalmente</span>
+          <div class="option-desc">Inspira confiança, coordena o grupo, mantém todos focados. (+Espírito, Vantagem: Comando)</div>
+        </div>
+      </div>
+      <div class="nav">
+        <button class="btn btn-back" onclick="prevStep()">← Voltar</button>
+        <button class="btn btn-next" onclick="nextStep()" disabled id="next-3">Próximo →</button>
+      </div>
+    </div>
+
+    <!-- ══ PASSO 4: CORPO ══ -->
+    <div class="step-card" data-step="4">
+      <div class="step-number">Parte 4 de 10</div>
+      <h2>Como é o corpo do seu personagem?</h2>
+      <p class="sub">A constituição física define sua resistência e força bruta.</p>
+      <div class="options grid-2">
+        <div class="option" onclick="selectOption(this,'corpo','forte')">
+          <span class="option-letter">A</span><span class="option-title">Forte e robusto</span>
+          <div class="option-desc">Corpo atlético, musculoso. Carrega peso, luta bem no corpo a corpo. (+Força d8, +Vigor d6)</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'corpo','agil')">
+          <span class="option-letter">B</span><span class="option-title">Ágil e veloz</span>
+          <div class="option-desc">Corpo esguio e rápido. Foge com facilidade, reage rápido. (+Agilidade d8, +Vigor d4)</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'corpo','resistente')">
+          <span class="option-letter">C</span><span class="option-title">Resistente e durável</span>
+          <div class="option-desc">Não é o mais forte nem o mais rápido, mas aguenta muito mais castigo. (+Vigor d8)</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'corpo','comum')">
+          <span class="option-letter">D</span><span class="option-title">Pessoa comum</span>
+          <div class="option-desc">Fisicamente médio — seus talentos estão na mente, não no corpo. (+Astúcia d8)</div>
+        </div>
+      </div>
+      <div class="nav">
+        <button class="btn btn-back" onclick="prevStep()">← Voltar</button>
+        <button class="btn btn-next" onclick="nextStep()" disabled id="next-4">Próximo →</button>
+      </div>
+    </div>
+
+    <!-- ══ PASSO 5: HABILIDADE ESPECIAL ══ -->
+    <div class="step-card" data-step="5">
+      <div class="step-number">Parte 5 de 10</div>
+      <h2>Qual é o talento especial do seu personagem?</h2>
+      <p class="sub">Algo que ele faz melhor do que a maioria das pessoas — seu diferencial.</p>
+      <div class="options">
+        <div class="option" onclick="selectOption(this,'talento','atirador')">
+          <span class="option-letter">A</span><span class="option-title">Atirador preciso</span>
+          <div class="option-desc">Excelente com armas de fogo. Sabe quando atirar e nunca desperdiça uma bala. (Atirar d8, Vant.: Tiro Mortal)</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'talento','furtivo')">
+          <span class="option-letter">B</span><span class="option-title">Mestre da furtividade</span>
+          <div class="option-desc">Passa por câmeras, se move sem fazer barulho, desaparece em segundos. (Furtividade d8, Perceber d8)</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'talento','persuasor')">
+          <span class="option-letter">C</span><span class="option-title">Persuasivo e carismático</span>
+          <div class="option-desc">As pessoas acreditam nele. Consegue informações, aliados e saídas com palavras. (Persuadir d8, Intimidar d6)</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'talento','pesquisador')">
+          <span class="option-letter">D</span><span class="option-title">Pesquisador brilhante</span>
+          <div class="option-desc">Encontra padrões onde ninguém vê, pesquisa rápido e conecta informações. (Pesquisar d8, Ocultismo d6)</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'talento','sobrevivente')">
+          <span class="option-letter">E</span><span class="option-title">Sobrevivente nato</span>
+          <div class="option-desc">Já passou por coisas terríveis e saiu de pé. Sabe improvisar saídas em situações extremas. (Atletismo d8, Vant.: Duro de Matar)</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'talento','combatente')">
+          <span class="option-letter">F</span><span class="option-title">Combatente treinado</span>
+          <div class="option-desc">Lutas, artes marciais, defesa pessoal. Sabe como usar o próprio corpo como arma. (Lutar d8, Vant.: Artista Marcial)</div>
+        </div>
+      </div>
+      <div class="nav">
+        <button class="btn btn-back" onclick="prevStep()">← Voltar</button>
+        <button class="btn btn-next" onclick="nextStep()" disabled id="next-5">Próximo →</button>
+      </div>
+    </div>
+
+    <!-- ══ PASSO 6: FRAQUEZA ══ -->
+    <div class="step-card" data-step="6">
+      <div class="step-number">Parte 6 de 10</div>
+      <h2>Qual é o maior defeito do seu personagem?</h2>
+      <p class="sub">Ninguém é perfeito — e em cenários de terror, as fraquezas criam os melhores momentos dramáticos.</p>
+      <div class="options">
+        <div class="option" onclick="selectOption(this,'fraqueza','fobia')">
+          <span class="option-letter">A</span><span class="option-title">Fobia (Complicação Maior)</span>
+          <div class="option-desc">Tem medo de algo específico — escuridão, insetos, lugares fechados. Quando confrontado, -2 em tudo.</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'fraqueza','curioso')">
+          <span class="option-letter">B</span><span class="option-title">Curioso demais (Complicação Maior)</span>
+          <div class="option-desc">Não consegue deixar um mistério passar. Frequentemente se mete em perigo por não saber parar.</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'fraqueza','habito')">
+          <span class="option-letter">C</span><span class="option-title">Hábito destrutivo (Complicação Maior)</span>
+          <div class="option-desc">Álcool, cigarros, jogos — algo que consome seu tempo e recursos, e pode falhar em momentos críticos.</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'fraqueza','leal')">
+          <span class="option-letter">D</span><span class="option-title">Leal até a loucura (Complicação Menor)</span>
+          <div class="option-desc">Jamais abandona um aliado. Mesmo quando deveria fugir, volta para salvar quem ficou para trás.</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'fraqueza','segredo')">
+          <span class="option-letter">E</span><span class="option-title">Segredo sombrio (Complicação Menor)</span>
+          <div class="option-desc">Algo no passado que, se revelado, poderia destruir sua vida — ou colocar outros em perigo.</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'fraqueza','impulsivo')">
+          <span class="option-letter">F</span><span class="option-title">Impulsivo (Complicação Maior)</span>
+          <div class="option-desc">Age sem pensar, atira primeiro, perguntas depois. Ótimo para combate, péssimo para furtividade.</div>
+        </div>
+      </div>
+      <div class="nav">
+        <button class="btn btn-back" onclick="prevStep()">← Voltar</button>
+        <button class="btn btn-next" onclick="nextStep()" disabled id="next-6">Próximo →</button>
+      </div>
+    </div>
+
+    <!-- ══ PASSO 7: MOTIVAÇÃO ══ -->
+    <div class="step-card" data-step="7">
+      <div class="step-number">Parte 7 de 10</div>
+      <h2>Por que seu personagem está investigando o sobrenatural?</h2>
+      <p class="sub">Qual é a razão que o faz continuar mesmo quando tudo diz para fugir?</p>
+      <div class="options">
+        <div class="option" onclick="selectOption(this,'motivo','perda')">
+          <span class="option-letter">A</span><span class="option-title">Perdeu alguém querido para o sobrenatural</span>
+          <div class="option-desc">Um familiar, amigo ou parceiro foi levado, corrompido ou morto por algo inexplicável. Quer respostas.</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'motivo','sobrevivente')">
+          <span class="option-letter">B</span><span class="option-title">Sobreviveu a algo que não deveria existir</span>
+          <div class="option-desc">Viu algo que ninguém acredita. Desde então, não consegue parar de procurar a verdade por trás daquilo.</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'motivo','missao')">
+          <span class="option-letter">C</span><span class="option-title">Sente que tem uma missão a cumprir</span>
+          <div class="option-desc">Religioso, visionário ou simplesmente convicto: acredita que foi escolhido para enfrentar o que os outros não podem.</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'motivo','trabalho')">
+          <span class="option-letter">D</span><span class="option-title">Simplesmente é o trabalho</span>
+          <div class="option-desc">Agente, investigador ou contratado. Não acredita em nada disso, mas o caso não fecha — e a paga é boa.</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'motivo','conhecimento')">
+          <span class="option-letter">E</span><span class="option-title">Sede pelo conhecimento proibido</span>
+          <div class="option-desc">É fascinado pelo que está além do normal. O medo é parte da atração. Precisa saber mesmo que destrua a sanidade.</div>
+        </div>
+      </div>
+      <div class="nav">
+        <button class="btn btn-back" onclick="prevStep()">← Voltar</button>
+        <button class="btn btn-next" onclick="nextStep()" disabled id="next-7">Próximo →</button>
+      </div>
+    </div>
+
+    <!-- ══ PASSO 8: EXPERIÊNCIA COM O SOBRENATURAL ══ -->
+    <div class="step-card" data-step="8">
+      <div class="step-number">Parte 8 de 10</div>
+      <h2>Quanto seu personagem já viveu de sobrenatural?</h2>
+      <p class="sub">Isso define o quanto ele sabe sobre o que está por vir.</p>
+      <div class="options">
+        <div class="option" onclick="selectOption(this,'experiencia','nenhuma')">
+          <span class="option-letter">A</span><span class="option-title">Nunca viveu nada — é a primeira vez</span>
+          <div class="option-desc">Tudo é novo e aterrorizante. Não sabe o que esperar, mas tem potencial inexplorado. (Ocultismo d4)</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'experiencia','pouca')">
+          <span class="option-letter">B</span><span class="option-title">Viveu uma experiência isolada</span>
+          <div class="option-desc">Algo aconteceu uma vez. Pesquisou bastante desde então, mas ainda tem muito a aprender. (Ocultismo d6)</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'experiencia','alguma')">
+          <span class="option-letter">C</span><span class="option-title">Já investigou alguns casos estranhos</span>
+          <div class="option-desc">Não é novato. Sabe o básico sobre o que pode matar, o que pode machucar e o que pode ser revertido. (Ocultismo d8)</div>
+        </div>
+      </div>
+      <div class="nav">
+        <button class="btn btn-back" onclick="prevStep()">← Voltar</button>
+        <button class="btn btn-next" onclick="nextStep()" disabled id="next-8">Próximo →</button>
+      </div>
+    </div>
+
+    <!-- ══ PASSO 9: ARMA/PROTEÇÃO ══ -->
+    <div class="step-card" data-step="9">
+      <div class="step-number">Parte 9 de 10</div>
+      <h2>Como seu personagem se protege?</h2>
+      <p class="sub">Qual é o equipamento principal que ele carrega quando as coisas ficam perigosas?</p>
+      <div class="options grid-2">
+        <div class="option" onclick="selectOption(this,'arma','pistola')">
+          <span class="option-letter">A</span><span class="option-title">Pistola 9mm</span>
+          <div class="option-desc">Discreta, confiável, fácil de esconder. A escolha de quem não quer chamar atenção.</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'arma','escopeta')">
+          <span class="option-letter">B</span><span class="option-title">Escopeta</span>
+          <div class="option-desc">Pesada e barulhenta, mas devastadora em curtas distâncias. Para quem prefere certeza.</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'arma','faca')">
+          <span class="option-letter">C</span><span class="option-title">Faca de combate</span>
+          <div class="option-desc">Silenciosa, sempre à mão. Para quem prefere não depender de munição.</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'arma','equipamento')">
+          <span class="option-letter">D</span><span class="option-title">Equipamento especializado</span>
+          <div class="option-desc">Detector de EMF, câmera de visão noturna, microfones direcionais. Ferramentas para investigar, não lutar.</div>
+        </div>
+        <div class="option" onclick="selectOption(this,'arma','nenhuma')">
+          <span class="option-letter">E</span><span class="option-title">Nenhuma arma</span>
+          <div class="option-desc">Confia na fuga, nas palavras e na improvisação. Não acredita que armas resolvem esse tipo de problema.</div>
+        </div>
+      </div>
+      <div class="nav">
+        <button class="btn btn-back" onclick="prevStep()">← Voltar</button>
+        <button class="btn btn-next" onclick="nextStep()" disabled id="next-9">Próximo →</button>
+      </div>
+    </div>
+
+    <!-- ══ PASSO 10: APARÊNCIA ══ -->
+    <div class="step-card" data-step="10">
+      <div class="step-number">Parte 10 de 10</div>
+      <h2>Descreva brevemente a aparência do seu personagem</h2>
+      <p class="sub">Não precisa ser longo — duas ou três características físicas marcantes que os outros jogadores vão lembrar.</p>
+      <label class="input-label">Aparência (opcional)</label>
+      <textarea class="text-input" id="q10-aparencia" rows="3" placeholder="Ex: Homem de 35 anos, cabelos grisalhos prematuros, olhos escuros sempre com olheiras, costuma usar casaco preto..."></textarea>
+      <div style="margin-top:16px">
+        <label class="input-label">Traço marcante de personalidade (opcional)</label>
+        <input type="text" class="text-input" id="q10-trait" placeholder="Ex: Fala pouco mas observa tudo. / Sempre faz piadas nervosas sob pressão.">
+      </div>
+      <div class="nav">
+        <button class="btn btn-back" onclick="prevStep()">← Voltar</button>
+        <button class="btn btn-generate" onclick="generateSheet()">⚡ Gerar Ficha</button>
+      </div>
+    </div>
+
+  </div><!-- /questionnaire -->
+
+  <!-- ══ FICHA GERADA ══ -->
+  <div id="sheet">
+    <div class="sheet-header">
+      <div>
+        <div class="genre">SAVAGE WORLDS — TERROR NOS DIAS ATUAIS</div>
+        <h2 id="sh-name">—</h2>
+        <div class="player-name" id="sh-concept">—</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:.7rem;color:var(--muted)">ESTÁGIO</div>
+        <div style="font-size:1.2rem;color:var(--accent);font-weight:bold">NOVATO</div>
+        <div style="font-size:.7rem;color:var(--muted);margin-top:4px">BENES INICIAIS: 3</div>
+      </div>
+    </div>
+
+    <div class="concept-banner" id="sh-bio-concept">—</div>
+
+    <div class="sheet-grid">
+
+      <!-- Atributos -->
+      <div class="sheet-section full">
+        <h3>Atributos</h3>
+        <div class="attrs">
+          <div class="attr-box"><div class="attr-name">Agilidade</div><div class="attr-die" id="attr-agi">d6</div></div>
+          <div class="attr-box"><div class="attr-name">Astúcia</div><div class="attr-die" id="attr-ast">d6</div></div>
+          <div class="attr-box"><div class="attr-name">Espírito</div><div class="attr-die" id="attr-esp">d6</div></div>
+          <div class="attr-box"><div class="attr-name">Força</div><div class="attr-die" id="attr-for">d4</div></div>
+          <div class="attr-box"><div class="attr-name">Vigor</div><div class="attr-die" id="attr-vig">d6</div></div>
+        </div>
+      </div>
+
+      <!-- Derivadas -->
+      <div class="sheet-section full">
+        <h3>Características Derivadas</h3>
+        <div class="derived">
+          <div class="derived-box"><div class="derived-label">Aparar</div><div class="derived-val" id="der-aparar">4</div></div>
+          <div class="derived-box"><div class="derived-label">Resistência</div><div class="derived-val" id="der-resist">4</div></div>
+          <div class="derived-box"><div class="derived-label">Movimentação</div><div class="derived-val" id="der-mov">6</div></div>
+          <div class="derived-box"><div class="derived-label">Tamanho</div><div class="derived-val">0</div></div>
+          <div class="derived-box"><div class="derived-label">Ferimentos</div>
+            <div class="wounds" style="margin-top:5px">
+              <div class="wound-box"></div><div class="wound-box"></div><div class="wound-box"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Perícias -->
+      <div class="sheet-section">
+        <h3>Perícias</h3>
+        <div class="skills-list" id="sh-skills"></div>
+      </div>
+
+      <!-- Vantagens e Complicações -->
+      <div class="sheet-section">
+        <h3>Vantagens</h3>
+        <div class="trait-list" id="sh-edges"></div>
+        <h3 style="margin-top:14px">Complicações</h3>
+        <div class="trait-list" id="sh-hindrances"></div>
+      </div>
+
+      <!-- Equipamento -->
+      <div class="sheet-section">
+        <h3>Equipamento</h3>
+        <ul class="equip-list" id="sh-equip"></ul>
+      </div>
+
+      <!-- Histórico -->
+      <div class="sheet-section">
+        <h3>Histórico</h3>
+        <div class="bio-block" id="sh-bio"></div>
+      </div>
+
+    </div><!-- /sheet-grid -->
+
+    <div class="sheet-actions">
+      <button class="btn-restart" onclick="restart()">↩ Recomeçar</button>
+      <button class="btn-print" id="btn-pdf" onclick="savePDF()">⬇ Salvar como PDF</button>
+    </div>
+    <div id="pdf-status" style="text-align:right;margin-top:8px;font-size:.8rem;color:var(--muted);display:none;">
+      Gerando PDF... aguarde.
+    </div>
+  </div><!-- /sheet -->
+
+</main>
+
+<script>
+// ── Estado ────────────────────────────────────────────────
+const answers = {};
+let currentStep = 1;
+const totalSteps = 10;
+
+// ── Navegação ─────────────────────────────────────────────
+function updateProgress() {
+  const pct = ((currentStep - 1) / totalSteps) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = `Pergunta ${currentStep} de ${totalSteps}`;
+}
+
+function showStep(n) {
+  document.querySelectorAll('.step-card').forEach(c => c.classList.remove('active'));
+  const card = document.querySelector(`.step-card[data-step="${n}"]`);
+  if (card) { card.classList.add('active'); card.scrollIntoView({behavior:'smooth',block:'start'}); }
+  updateProgress();
+}
+
+function nextStep() {
+  if (currentStep === 1) {
+    const name = document.getElementById('q1-name').value.trim();
+    if (!name) { alert('Por favor, insira um nome para o personagem.'); return; }
+    answers.nome = name;
+  }
+  if (currentStep < totalSteps) { currentStep++; showStep(currentStep); }
+}
+
+function prevStep() {
+  if (currentStep > 1) { currentStep--; showStep(currentStep); }
+}
+
+function selectOption(el, key, val) {
+  const parent = el.closest('.options');
+  parent.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  answers[key] = val;
+  const nextBtn = document.getElementById(`next-${currentStep}`);
+  if (nextBtn) nextBtn.disabled = false;
+}
+
+// ── Lógica de geração ─────────────────────────────────────
+function generateSheet() {
+  answers.aparencia = document.getElementById('q10-aparencia').value.trim();
+  answers.trait = document.getElementById('q10-trait').value.trim();
+
+  // Atributos base
+  const attrs = { agi: 4, ast: 4, esp: 4, for: 4, vig: 4 };
+  // 5 pontos de atributo — distribuídos pela build
+
+  // Por ocupação (+2 pts base)
+  const ocupMap = {
+    medico:     { ast:+2 },
+    detetive:   { ast:+1, esp:+1 },
+    jornalista: { ast:+2 },
+    exmilitar:  { for:+1, vig:+1 },
+    tecnico:    { ast:+2 },
+    ocultista:  { esp:+2 },
+  };
+  // Por personalidade (+1 pt)
+  const persMap = {
+    corajoso:  { esp:+1 },
+    impulsivo: { agi:+1 },
+    analitico: { ast:+1 },
+    lider:     { esp:+1 },
+  };
+  // Por corpo (+1-2 pts)
+  const corpoMap = {
+    forte:     { for:+2, vig:+1 },
+    agil:      { agi:+2 },
+    resistente:{ vig:+2 },
+    comum:     { ast:+2 },
+  };
+
+  const amap = ocupMap[answers.ocupacao]  || {};
+  const pmap = persMap[answers.personalidade] || {};
+  const cmap = corpoMap[answers.corpo] || {};
+
+  for (const k in amap) attrs[k] += amap[k];
+  for (const k in pmap) attrs[k] += pmap[k];
+  for (const k in cmap) attrs[k] += cmap[k];
+
+  // Clamp a máx 4 (d12) em escala de dados (4=d4,6=d6,8=d8,10=d10,12=d12)
+  const dieMap = {2:'d4',4:'d4',6:'d6',8:'d8',10:'d10',12:'d12'};
+  const clamp = v => Math.min(12, Math.max(4, v % 2 === 0 ? v : v - 1));
+  // Converter pontos para escala de dados (começa em d4, cada ponto = +2)
+  const toDie = pts => {
+    const val = Math.min(12, Math.max(4, 4 + pts * 2));
+    return dieMap[val] || 'd6';
+  };
+  const agiD = toDie(attrs.agi - 4 + 2); // base d4 + pontos extras
+  const astD = toDie(attrs.ast - 4 + 2);
+  const espD = toDie(attrs.esp - 4 + 2);
+  const forD = toDie(attrs.for - 4 + 2);
+  const vigD = toDie(attrs.vig - 4 + 2);
+
+  // Mapeamento de dado para número
+  const dieNum = {'d4':4,'d6':6,'d8':8,'d10':10,'d12':12};
+
+  // Perícias base (todos começam com d4)
+  const skills = {
+    'Atletismo':  'd4',
+    'Conhecimento Geral': 'd4',
+    'Furtividade': 'd4',
+    'Perceber':   'd4',
+    'Persuadir':  'd4',
+  };
+
+  // Perícias por ocupação
+  const ocupSkills = {
+    medico:     { 'Curar':'d8', 'Ciência':'d6', 'Perceber':'d6' },
+    detetive:   { 'Perceber':'d8', 'Pesquisar':'d6', 'Intimidar':'d6' },
+    jornalista: { 'Pesquisar':'d8', 'Persuadir':'d6', 'Perceber':'d6' },
+    exmilitar:  { 'Atirar':'d8', 'Lutar':'d6', 'Atletismo':'d6' },
+    tecnico:    { 'Hackear':'d8', 'Eletrônica':'d6', 'Consertar':'d6' },
+    ocultista:  { 'Ocultismo':'d8', 'Pesquisar':'d6', 'Persuadir':'d6' },
+  };
+
+  // Perícias por talento
+  const talSkills = {
+    atirador:    { 'Atirar':'d8' },
+    furtivo:     { 'Furtividade':'d8', 'Perceber':'d8' },
+    persuasor:   { 'Persuadir':'d8', 'Intimidar':'d6' },
+    pesquisador: { 'Pesquisar':'d8', 'Ocultismo':'d6' },
+    sobrevivente:{ 'Atletismo':'d8', 'Sobrevivência':'d6' },
+    combatente:  { 'Lutar':'d8', 'Atletismo':'d6' },
+  };
+
+  // Perícias por experiência
+  const expSkills = {
+    nenhuma: { 'Ocultismo':'d4' },
+    pouca:   { 'Ocultismo':'d6' },
+    alguma:  { 'Ocultismo':'d8' },
+  };
+
+  const mergeSkills = (base, extra) => {
+    for (const [k,v] of Object.entries(extra)) {
+      if (!base[k] || dieNum[v] > dieNum[base[k]]) base[k] = v;
+    }
+  };
+
+  mergeSkills(skills, ocupSkills[answers.ocupacao] || {});
+  mergeSkills(skills, talSkills[answers.talento] || {});
+  mergeSkills(skills, expSkills[answers.experiencia] || {});
+
+  // Sempre incluir Perceber d6 no mínimo
+  if (dieNum[skills['Perceber']] < 6) skills['Perceber'] = 'd6';
+
+  // Vantagens
+  const edges = [];
+  if (answers.personalidade === 'lider') edges.push({ name:'Comando', desc:'Aliados próximos ganham +1 para se recuperar de Abalado.' });
+  if (answers.personalidade === 'corajoso') edges.push({ name:'Corajoso', desc:'+2 em testes de Medo e -2 na Tabela de Medo.' });
+  if (answers.talento === 'atirador') edges.push({ name:'Tiro Mortal', desc:'Dobra o dano do primeiro ataque de Atirar bem-sucedido ao sacar um Curinga.' });
+  if (answers.talento === 'sobrevivente') edges.push({ name:'Duro de Matar', desc:'Ignora penalidades de Ferimentos em rolagens de Vigor para não morrer.' });
+  if (answers.talento === 'combatente') edges.push({ name:'Artista Marcial', desc:'+1 em Lutar Desarmado. Punhos causam For+d4.' });
+  if (answers.ocupacao === 'medico') edges.push({ name:'Curandeiro', desc:'+2 em todas as rolagens de Curar, arcana ou não.' });
+  if (answers.ocupacao === 'detetive') edges.push({ name:'Investigador', desc:'+2 em Pesquisar e em rolagens de Perceber investigativas.' });
+  // Vantagem extra de Humano (todos são humanos)
+  edges.push({ name:'Adaptável (Humano)', desc:'Vantagem grátis por ser humano — já inclusa nas vantagens acima.' });
+
+  // Complicações
+  const hindMap = {
+    fobia:     { name:'Fobia (Maior)', desc:'Tem medo intenso de algo específico. -2 em tudo quando presente.' },
+    curioso:   { name:'Curioso (Maior)', desc:'Não resiste a investigar o desconhecido, mesmo quando é perigoso.' },
+    habito:    { name:'Hábito Destrutivo (Maior)', desc:'Dependência que consome recursos e pode falhar em momentos críticos.' },
+    leal:      { name:'Leal (Menor)', desc:'Nunca abandona aliados, mesmo quando deveria.' },
+    segredo:   { name:'Segredo (Menor)', desc:'Algo no passado que pode destruir sua vida se revelado.' },
+    impulsivo: { name:'Impulsivo (Maior)', desc:'Age sem pensar. Péssimo para furtividade, ótimo para entrar em briga.' },
+  };
+  const hindrances = [ hindMap[answers.fraqueza] ].filter(Boolean);
+
+  // Equipamento
+  const equipBase = [
+    'Roupa casual com bolsos (2 kg)',
+    'Celular com lanterna',
+    'Kit de primeiros socorros (3 usos)',
+    'Dinheiro ($200)',
+    'Mochila resistente',
+  ];
+  const armaMap = {
+    pistola:    ['Glock 9mm (2d6, PA1, 17 tiros, 12/24/48 quadros)', 'Coldre de cintura', '2 carregadores extras (50 balas)'],
+    escopeta:   ['Escopeta pump (1-3d6, 6 tiros, 12/24/48 quadros)', 'Bandoleira (20 cartuchos extras)'],
+    faca:       ['Faca de combate (For+d4, pode ser arremessada)', 'Bainha discreta'],
+    equipamento:['Detector de EMF portátil', 'Câmera com visão noturna', 'Microfone direcional', 'Lanterna tática (10 quadros)'],
+    nenhuma:    ['Lanterna tática reforçada', 'Spray de pimenta (1/2/4 quadros, 5 tiros, Vigor -2 ou Atordoado)'],
+  };
+  const equip = [...equipBase, ...(armaMap[answers.arma] || [])];
+
+  // Derivadas
+  const lutarDie = dieNum[skills['Lutar']] || 4;
+  const aparar = 2 + Math.floor(lutarDie / 2);
+  const vigNum = dieNum[vigD];
+  const resistencia = 2 + Math.floor(vigNum / 2);
+
+  // Conceito
+  const ocupLabel = { medico:'Médico/Paramédico', detetive:'Detetive/Investigador', jornalista:'Jornalista/Pesquisador', exmilitar:'Ex-Militar/Segurança', tecnico:'Técnico/Hacker', ocultista:'Ocultista/Padre' };
+  const motivoLabel = { perda:'movido pela perda de alguém querido', sobrevivente:'sobrevivente de algo inexplicável', missao:'guiado por uma missão', trabalho:'profissional investigando por dever', conhecimento:'obcecado pelo conhecimento proibido' };
+  const conceitoTexto = `${ocupLabel[answers.ocupacao] || ''} — ${motivoLabel[answers.motivo] || ''}`;
+
+  // Bio
+  const bioLines = [];
+  bioLines.push(`<div class="bio-label">Ocupação</div>${ocupLabel[answers.ocupacao] || '—'}`);
+  bioLines.push(`<div class="bio-label">Motivação</div>${motivoLabel[answers.motivo] || '—'}`);
+  if (answers.aparencia) bioLines.push(`<div class="bio-label">Aparência</div>${answers.aparencia}`);
+  if (answers.trait)    bioLines.push(`<div class="bio-label">Traço Marcante</div>${answers.trait}`);
+
+  // ── Renderizar ──────────────────────────────────────────
+  document.getElementById('sh-name').textContent = answers.nome || '—';
+  document.getElementById('sh-concept').textContent = conceitoTexto;
+  document.getElementById('sh-bio-concept').textContent = `"${answers.nome}" — ${conceitoTexto}.`;
+
+  document.getElementById('attr-agi').textContent = agiD;
+  document.getElementById('attr-ast').textContent = astD;
+  document.getElementById('attr-esp').textContent = espD;
+  document.getElementById('attr-for').textContent = forD;
+  document.getElementById('attr-vig').textContent = vigD;
+  document.getElementById('der-aparar').textContent = aparar;
+  document.getElementById('der-resist').textContent = resistencia;
+  document.getElementById('der-mov').textContent = '6';
+
+  // Perícias
+  const sl = document.getElementById('sh-skills');
+  sl.innerHTML = '';
+  const sorted = Object.entries(skills).sort((a,b)=>a[0].localeCompare(b[0]));
+  sorted.forEach(([name,die]) => {
+    const row = document.createElement('div');
+    row.className = 'skill-row';
+    row.innerHTML = `<span class="skill-name">${name}</span><span class="skill-die">${die}</span>`;
+    sl.appendChild(row);
+  });
+
+  // Vantagens
+  const el = document.getElementById('sh-edges');
+  el.innerHTML = '';
+  // Remove a duplicada "Adaptável" se já tem outra vantagem forte
+  const displayEdges = edges.filter(e => e.name !== 'Adaptável (Humano)').slice(0,3);
+  displayEdges.forEach(e => {
+    el.innerHTML += `<div class="trait-item"><div class="trait-name">${e.name}</div><div class="trait-desc">${e.desc}</div></div>`;
+  });
+
+  // Complicações
+  const hl = document.getElementById('sh-hindrances');
+  hl.innerHTML = '';
+  hindrances.forEach(h => {
+    hl.innerHTML += `<div class="trait-item comp"><div class="trait-name">${h.name}</div><div class="trait-desc">${h.desc}</div></div>`;
+  });
+
+  // Equipamento
+  const eql = document.getElementById('sh-equip');
+  eql.innerHTML = '';
+  equip.forEach(e => { eql.innerHTML += `<li>${e}</li>`; });
+
+  // Bio
+  document.getElementById('sh-bio').innerHTML = bioLines.join('');
+
+  // Mostrar ficha
+  document.getElementById('questionnaire').style.display = 'none';
+  document.getElementById('progress-bar-wrap').style.display = 'none';
+  document.getElementById('sheet').classList.add('visible');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function restart() {
+  Object.keys(answers).forEach(k => delete answers[k]);
+  currentStep = 1;
+  document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+  document.querySelectorAll('[id^="next-"]').forEach(b => b.disabled = true);
+  document.getElementById('q1-name').value = '';
+  document.getElementById('q10-aparencia').value = '';
+  document.getElementById('q10-trait').value = '';
+  document.getElementById('questionnaire').style.display = 'block';
+  document.getElementById('progress-bar-wrap').style.display = 'flex';
+  document.getElementById('sheet').classList.remove('visible');
+  showStep(1);
+}
+
+updateProgress();
+</script>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+async function savePDF() {
+  const btn = document.getElementById('btn-pdf');
+  const status = document.getElementById('pdf-status');
+  btn.disabled = true;
+  btn.textContent = '⏳ Gerando...';
+  status.style.display = 'block';
+
+  // Esconde elementos que não devem ir pro PDF
+  const toHide = document.querySelectorAll('.sheet-actions, #pdf-status, header, #progress-bar-wrap');
+  toHide.forEach(el => el.style.setProperty('display','none','important'));
+
+  const sheet = document.getElementById('sheet');
+  sheet.style.background = '#fff';
+  sheet.style.color = '#000';
+
+  try {
+    const canvas = await html2canvas(sheet, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      onclone: (doc) => {
+        // Garante cores no clone para impressão
+        doc.querySelectorAll('.attr-die').forEach(el => el.style.color = '#8B1A1A');
+        doc.querySelectorAll('.skill-die').forEach(el => el.style.color = '#7a5a00');
+        doc.querySelectorAll('.sheet-section').forEach(el => {
+          el.style.background = '#fff';
+          el.style.border = '1px solid #ccc';
+        });
+        doc.querySelectorAll('.attr-box, .derived-box').forEach(el => {
+          el.style.background = '#f5f5f5';
+          el.style.border = '1px solid #ccc';
+        });
+        doc.querySelectorAll('.trait-item').forEach(el => {
+          el.style.background = '#f9f9f9';
+        });
+        doc.querySelectorAll('.skill-row:nth-child(even)').forEach(el => {
+          el.style.background = '#f5f5f5';
+        });
+        doc.querySelectorAll('.sheet-actions, #pdf-status, header, #progress-bar-wrap').forEach(el => {
+          el.style.display = 'none';
+        });
+      }
+    });
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+    const pdfW = pdf.internal.pageSize.getWidth();
+    const pdfH = pdf.internal.pageSize.getHeight();
+
+    const imgW = canvas.width;
+    const imgH = canvas.height;
+    const ratio = imgW / imgH;
+
+    // Calcular dimensões para caber em A4
+    let drawW = pdfW;
+    let drawH = pdfW / ratio;
+
+    if (drawH > pdfH) {
+      // Conteúdo muito longo: paginar
+      let yPos = 0;
+      const pageH = (pdfH / pdfW) * imgW; // altura de uma página em pixels do canvas
+      let pageNum = 0;
+
+      while (yPos < imgH) {
+        if (pageNum > 0) pdf.addPage();
+
+        // Recortar fatia do canvas para esta página
+        const sliceCanvas = document.createElement('canvas');
+        const sliceH = Math.min(pageH, imgH - yPos);
+        sliceCanvas.width = imgW;
+        sliceCanvas.height = sliceH;
+        const ctx = sliceCanvas.getContext('2d');
+        ctx.drawImage(canvas, 0, -yPos);
+        const sliceData = sliceCanvas.toDataURL('image/jpeg', 0.92);
+        const sliceRealH = (sliceH / imgW) * pdfW;
+        pdf.addImage(sliceData, 'JPEG', 0, 0, pdfW, sliceRealH);
+
+        yPos += pageH;
+        pageNum++;
+      }
+    } else {
+      pdf.addImage(imgData, 'JPEG', 0, 0, drawW, drawH);
+    }
+
+    const nomePersonagem = (document.getElementById('sh-name').textContent || 'personagem').replace(/[^a-zA-Z0-9_À-ſ ]/g, '').trim().replace(/ /g, '_');
+    pdf.save(`Ficha_${nomePersonagem}_SWADE_Terror.pdf`);
+
+  } catch(err) {
+    console.error(err);
+    alert('Erro ao gerar PDF. Tente usar Ctrl+P → Salvar como PDF no seu navegador.');
+  } finally {
+    toHide.forEach(el => el.style.removeProperty('display'));
+    sheet.style.background = '';
+    sheet.style.color = '';
+    btn.disabled = false;
+    btn.textContent = '⬇ Salvar como PDF';
+    status.style.display = 'none';
+  }
+}
+</script>
+</body>
+</html>
