@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forjar o Herói — Criação de Personagem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0d0c;
+    --bg2:#141815;
+    --bg3:#1b201c;
+    --parchment:#e8dcc0;
+    --parchment-dim:#d9cba3;
+    --iron:#3a3f3d;
+    --iron-light:#565c58;
+    --blood:#6e1f1f;
+    --blood-bright:#9c3230;
+    --bronze:#a8823c;
+    --bronze-bright:#c9a45e;
+    --ink:#e6ded0;
+    --ink-dim:#9b9488;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0; background:
+      radial-gradient(ellipse 1200px 700px at 50% -10%, #1a1510 0%, var(--bg) 60%);
+    color:var(--ink); font-family:'EB Garamond', serif; font-size:18px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{ font-family:'Cinzel', serif; letter-spacing:.03em; }
+  .wrap{ max-width:880px; margin:0 auto; padding:0 24px 120px; }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding:90px 24px 60px; text-align:center; position:relative; overflow:hidden;
+  }
+  .hero::before{
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background: radial-gradient(circle at 50% 0%, rgba(168,130,60,.10), transparent 55%);
+  }
+  .emblem{ width:120px; height:120px; margin:0 auto 22px; opacity:.92; }
+  .hero .eyebrow{
+    font-family:'EB Garamond', serif; font-style:italic; color:var(--bronze-bright);
+    font-size:.95rem; letter-spacing:.16em; text-transform:uppercase; margin-bottom:10px;
+  }
+  .hero h1{
+    font-size:clamp(2.1rem, 5vw, 3.4rem); margin:0 0 16px; color:var(--parchment);
+    text-shadow:0 2px 24px rgba(0,0,0,.6);
+  }
+  .hero p.sub{
+    max-width:560px; margin:0 auto; color:var(--ink-dim); font-size:1.08rem; font-style:italic;
+  }
+
+  .divider{
+    display:flex; align-items:center; gap:14px; margin:8px 0 34px; color:var(--iron-light);
+  }
+  .divider svg{ flex-shrink:0; }
+  .divider .line{ flex:1; height:1px; background:linear-gradient(90deg, var(--iron), transparent); }
+  .divider .line.rev{ background:linear-gradient(270deg, var(--iron), transparent); }
+
+  section{ margin-top:64px; }
+  .sec-eyebrow{
+    font-family:'Cinzel', serif; font-size:.78rem; letter-spacing:.22em; color:var(--bronze);
+    text-transform:uppercase; margin-bottom:6px;
+  }
+  section h2{ font-size:1.7rem; color:var(--parchment); margin:0 0 6px; }
+  section > p.lede{ color:var(--ink-dim); font-size:1rem; margin:0 0 28px; max-width:640px; }
+
+  /* ---------- IDENTITY FIELDS ---------- */
+  .field-grid{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .field{ display:flex; flex-direction:column; gap:7px; }
+  .field.full{ grid-column:1 / -1; }
+  .field label{
+    font-size:.78rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-dim);
+  }
+  .field input[type=text], .field textarea{
+    background:var(--bg3); border:1px solid var(--iron); border-radius:2px;
+    color:var(--ink); font-family:'EB Garamond', serif; font-size:1.05rem;
+    padding:11px 13px; resize:vertical; transition:border-color .15s, background .15s;
+  }
+  .field textarea{ min-height:78px; line-height:1.55; }
+  .field input[type=text]:focus, .field textarea:focus{
+    outline:none; border-color:var(--bronze); background:#1f251f;
+  }
+  .field input::placeholder, .field textarea::placeholder{ color:#5a5650; font-style:italic; }
+
+  /* ---------- CARD GRID (raça / classe) ---------- */
+  .card-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)); gap:16px;
+  }
+  .pick-card{
+    position:relative; background:linear-gradient(160deg, var(--bg3), #171b17);
+    border:1px solid var(--iron); border-radius:3px; padding:20px 18px 18px;
+    cursor:pointer; transition:border-color .18s, transform .18s, background .18s;
+    display:flex; flex-direction:column; gap:8px; min-height:150px;
+  }
+  .pick-card:hover{ border-color:var(--iron-light); transform:translateY(-2px); }
+  .pick-card .icon{ width:30px; height:30px; color:var(--bronze); }
+  .pick-card h3{
+    font-family:'Cinzel', serif; font-size:1.02rem; color:var(--parchment-dim); margin:2px 0 0;
+    letter-spacing:.02em;
+  }
+  .pick-card p{ font-size:.88rem; color:var(--ink-dim); margin:0; line-height:1.5; font-style:italic; }
+  .pick-card .seal{
+    position:absolute; top:12px; right:12px; width:26px; height:26px; border-radius:50%;
+    background:var(--blood); border:1px solid var(--blood-bright);
+    display:flex; align-items:center; justify-content:center; opacity:0; transform:scale(.4) rotate(-25deg);
+    transition:opacity .22s, transform .22s; box-shadow:0 2px 8px rgba(0,0,0,.5);
+  }
+  .pick-card .seal svg{ width:13px; height:13px; }
+  .pick-card.selected{
+    border-color:var(--blood-bright); background:linear-gradient(160deg, #221614, #171b17);
+  }
+  .pick-card.selected .seal{ opacity:1; transform:scale(1) rotate(0deg); }
+  .pick-card.selected h3{ color:var(--parchment); }
+
+  /* ---------- Perguntas guiadas (moldam a ficha sozinhas) ---------- */
+  .choice-q{ margin-bottom:8px; }
+  .choice-q > label{ display:block; font-size:1.02rem; color:var(--parchment-dim); margin-bottom:10px; }
+  .choice-opts{ display:flex; flex-direction:column; gap:8px; }
+  .choice-opt{
+    display:block; width:100%; text-align:left; font-family:'EB Garamond', serif; font-size:.98rem;
+    background:var(--bg3); border:1px solid var(--iron); border-radius:2px; color:var(--ink);
+    padding:12px 15px; cursor:pointer; transition:border-color .15s, background .15s;
+    line-height:1.45;
+  }
+  .choice-opt:hover{ border-color:var(--iron-light); }
+  .choice-opt.sel{
+    background:linear-gradient(120deg,#2a1614,#221816); border-color:var(--blood-bright); color:var(--parchment);
+  }
+
+  .derived-grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(100px,1fr)); gap:12px;
+  }
+  .derived-card{
+    background:var(--bg3); border:1px solid var(--iron); border-radius:2px;
+    padding:14px 10px; text-align:center;
+  }
+  .dlabel-sm{
+    font-family:'Cinzel', serif; font-size:.68rem; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--ink-dim); margin-bottom:6px; display:block;
+  }
+  .derived-val{ font-family:'Cinzel', serif; font-size:1.5rem; color:var(--parchment); }
+
+  #summary{ display:none; margin-top:70px; }
+  .dossier{
+    background:linear-gradient(180deg, var(--parchment), #ddd0ac);
+    color:#241e14; border-radius:3px; padding:36px 34px; position:relative;
+    box-shadow:0 20px 60px rgba(0,0,0,.55);
+  }
+  .dossier::before{
+    content:''; position:absolute; inset:10px; border:1px solid rgba(36,30,20,.25); pointer-events:none;
+  }
+  .dossier h2{ color:#241e14; text-align:center; font-size:1.6rem; margin:0 0 4px; }
+  .dossier .dsub{ text-align:center; font-style:italic; color:#5c4f34; margin-bottom:24px; font-size:.95rem; }
+
+  /* ----- Ficha estilo SWADE oficial ----- */
+  .sheet-header{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:20px;
+    flex-wrap:wrap; margin-bottom:20px; padding-bottom:16px; border-bottom:2px solid #241e14;
+  }
+  .sheet-id{ flex:1; min-width:220px; }
+  .sid-row{ display:flex; gap:8px; font-size:1rem; margin-bottom:5px; border-bottom:1px solid rgba(36,30,20,.3); padding-bottom:2px; }
+  .sid-row .sid-label{ font-weight:700; color:#241e14; white-space:nowrap; }
+  .sid-row .sid-val{ color:#3a2f1e; }
+  .sid-row .sid-val.empty{ color:#8a7a58; font-style:italic; }
+  .sheet-derived{ display:flex; gap:16px; }
+  .sd-item{ text-align:center; }
+  .sd-circle{
+    width:56px; height:56px; border-radius:50%; border:2.5px solid #7a1f1f;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Cinzel', serif; font-size:1.3rem; color:#241e14; margin:0 auto 4px;
+  }
+  .sd-label{ font-family:'Cinzel', serif; font-size:.68rem; letter-spacing:.05em; text-transform:uppercase; color:#5c4f34; }
+
+  .sheet-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; margin-bottom:20px; }
+  .sheet-box{
+    background:rgba(255,255,255,.28); border:1px solid rgba(36,30,20,.25); border-radius:2px; padding:14px 15px;
+  }
+  .sheet-box h4{
+    font-family:'Cinzel', serif; font-size:.85rem; letter-spacing:.06em; text-transform:uppercase;
+    color:#7a1f1f; margin:0 0 10px; padding-bottom:6px; border-bottom:1px solid rgba(122,31,31,.35);
+  }
+  .attr-line, .skill-line{
+    display:flex; justify-content:space-between; font-size:.92rem; padding:4px 0;
+    border-bottom:1px dotted rgba(36,30,20,.3);
+  }
+  .attr-line b, .skill-line b{ font-family:'Cinzel', serif; color:#241e14; }
+  .sheet-box .box-text{ font-size:.9rem; line-height:1.5; white-space:pre-line; }
+  .sheet-box .box-text.empty{ color:#8a7a58; font-style:italic; }
+  .sheet-box .sub-h5{
+    font-family:'Cinzel', serif; font-size:.68rem; letter-spacing:.06em; text-transform:uppercase;
+    color:#5c4f34; margin:12px 0 4px;
+  }
+  .sheet-box .sub-h5:first-of-type{ margin-top:0; }
+
+  .sheet-table{ margin-bottom:18px; }
+  .sheet-table h4{
+    font-family:'Cinzel', serif; font-size:.85rem; letter-spacing:.06em; text-transform:uppercase;
+    color:#7a1f1f; margin:0 0 8px;
+  }
+  table.wtable{ width:100%; border-collapse:collapse; font-size:.86rem; }
+  table.wtable th{
+    text-align:left; font-family:'Cinzel', serif; font-size:.66rem; letter-spacing:.05em; text-transform:uppercase;
+    color:#5c4f34; border-bottom:1.5px solid #241e14; padding:4px 6px;
+  }
+  table.wtable td{ padding:6px 6px; border-bottom:1px solid rgba(36,30,20,.2); }
+
+  .sheet-trackers{ display:flex; gap:20px; flex-wrap:wrap; }
+  .tracker{ flex:1; min-width:160px; }
+  .tracker .sub-h5{
+    font-family:'Cinzel', serif; font-size:.68rem; letter-spacing:.06em; text-transform:uppercase;
+    color:#5c4f34; margin-bottom:6px;
+  }
+  .tracker-boxes{ display:flex; gap:6px; }
+  .tbox{
+    width:28px; height:28px; border:1.5px solid #241e14; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; font-size:.7rem; color:#5c4f34;
+  }
+
+  @media (max-width:760px){
+    .sheet-grid{ grid-template-columns:1fr 1fr; }
+  }
+  @media (max-width:480px){
+    .sheet-grid{ grid-template-columns:1fr; }
+  }
+
+  /* ---------- CTA / SUMMARY ---------- */
+  .cta-row{ text-align:center; margin-top:56px; }
+  button.forge{
+    font-family:'Cinzel', serif; font-size:1rem; letter-spacing:.08em; text-transform:uppercase;
+    background:var(--blood); color:var(--parchment); border:1px solid var(--blood-bright);
+    padding:16px 38px; border-radius:2px; cursor:pointer; transition:background .18s, transform .18s;
+  }
+  button.forge:hover{ background:var(--blood-bright); transform:translateY(-1px); }
+  .cta-row .note{ margin-top:12px; font-size:.85rem; color:var(--ink-dim); font-style:italic; }
+
+  .dossier-actions{ text-align:center; margin-top:22px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+  .dossier-actions button{
+    font-family:'EB Garamond', serif; font-size:.92rem; background:transparent; color:var(--ink-dim);
+    border:1px solid var(--iron); padding:9px 18px; border-radius:2px; cursor:pointer;
+  }
+  .dossier-actions button:hover{ border-color:var(--bronze); color:var(--ink); }
+
+  footer{ text-align:center; padding:50px 24px 20px; color:#4f4b43; font-size:.8rem; }
+
+  @media (max-width:600px){
+    .field-grid{ grid-template-columns:1fr; }
+    .dossier{ padding:28px 20px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    .pick-card, .pick-card .seal, button.forge{ transition:none; }
+  }
+
+  @media print{
+    body{ background:#fff !important; color:#241e14; }
+    .progress-track, .quiz-viewport, footer{ display:none !important; }
+    #summary{ display:block !important; margin:0; }
+    .dossier{ box-shadow:none; }
+    .dossier-actions{ display:none !important; }
+  }
+
+  /* ---------- Quiz shell ---------- */
+  .progress-track{
+    position:fixed; top:0; left:0; right:0; height:4px; background:var(--bg3); z-index:100;
+  }
+  .progress-fill{
+    height:100%; width:0%; background:linear-gradient(90deg, var(--blood), var(--bronze-bright));
+    transition:width .35s ease;
+  }
+  .edit-toolbar{
+    display:none; position:fixed; top:4px; left:0; right:0; z-index:99;
+    background:var(--bg2); border-bottom:1px solid var(--iron);
+    padding:10px 20px; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap;
+  }
+  .edit-toolbar .et-label{ font-size:.75rem; color:var(--bronze-bright); letter-spacing:.05em; text-transform:uppercase; }
+  .edit-toolbar select{
+    background:var(--bg3); border:1px solid var(--iron); color:var(--ink);
+    font-family:'EB Garamond', serif; font-size:.88rem; padding:7px 10px; border-radius:2px; max-width:340px;
+  }
+  .edit-toolbar button{
+    font-family:'Cinzel', serif; font-size:.78rem; letter-spacing:.05em; text-transform:uppercase;
+    background:var(--blood); color:var(--parchment); border:1px solid var(--blood-bright);
+    padding:8px 16px; border-radius:2px; cursor:pointer;
+  }
+  .quiz-viewport{ min-height:100vh; display:flex; align-items:center; padding:70px 24px; }
+  .quiz-viewport.with-toolbar{ padding-top:120px; }
+  .slide{
+    display:none; max-width:720px; margin:0 auto; width:100%;
+    animation:slideIn .35s ease;
+  }
+  .slide.active{ display:block; }
+  @keyframes slideIn{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:translateY(0); } }
+  .slide[data-type="intro"]{ text-align:center; max-width:640px; }
+  .slide .qbig{
+    display:block; font-size:1.5rem; color:var(--parchment); margin-bottom:22px; line-height:1.4;
+    font-family:'Cinzel', serif; font-weight:500;
+  }
+  .slide-nav{
+    display:flex; justify-content:space-between; align-items:center; margin-top:32px;
+  }
+  .slide-nav.center{ justify-content:center; }
+  .nav-back{
+    font-family:'EB Garamond', serif; font-size:.92rem; background:transparent; color:var(--ink-dim);
+    border:1px solid var(--iron); padding:10px 20px; border-radius:2px; cursor:pointer;
+  }
+  .nav-back:hover{ border-color:var(--bronze); color:var(--ink); }
+  .nav-next{
+    font-family:'Cinzel', serif; font-size:.9rem; letter-spacing:.06em; text-transform:uppercase;
+    background:var(--blood); color:var(--parchment); border:1px solid var(--blood-bright);
+    padding:12px 28px; border-radius:2px; cursor:pointer; transition:background .18s;
+  }
+  .nav-next:hover{ background:var(--blood-bright); }
+  .slide-counter{
+    text-align:center; font-size:.72rem; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink-dim); margin-bottom:14px;
+  }
+
+  .slide[data-type="loading"]{ text-align:center; }
+  .loading-spinner{
+    width:52px; height:52px; margin:0 auto 22px; border-radius:50%;
+    border:3px solid var(--iron); border-top-color:var(--bronze-bright);
+    animation:spin 0.9s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .slide[data-type="loading"] p{ font-family:'Cinzel', serif; color:var(--parchment-dim); font-size:1.1rem; letter-spacing:.04em; }
+
+  #summary .wrap{ padding-top:50px; }
+</style>
+</head>
+<body>
+
+<div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+<div class="edit-toolbar" id="editToolbar">
+  <span class="et-label">✏️ Editando:</span>
+  <select id="jumpSelect"></select>
+  <button id="btnJumpToResult">Ver ficha atualizada →</button>
+</div>
+
+<div class="quiz-viewport">
+
+  <div class="slide active" data-type="intro">
+    <svg class="emblem" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="46" stroke="#a8823c" stroke-width="1"/>
+      <path d="M50 18 L50 68 M38 30 L50 18 L62 30" stroke="#a8823c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M35 68 Q50 78 65 68" stroke="#a8823c" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M28 45 L22 51 L28 57 M72 45 L78 51 L72 57" stroke="#6e1f1f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div class="eyebrow">Antes da lâmina, a alma</div>
+    <h1>Forjar o Herói</h1>
+    <p class="sub">Responda como seu personagem responderia. No final, a ficha completa aparece pronta — sem você precisar entender nada de regras.</p>
+    <div class="slide-nav center">
+      <button class="nav-next" id="btnStart">Vamos começar</button>
+    </div>
+  </div>
+
+  <div class="slide" data-type="identidade">
+    <div class="sec-eyebrow">I. Identidade</div>
+    <h2>Quem você é</h2>
+    <p class="lede">O básico — nome de quem joga e nome de quem vai enfrentar o que vier pela frente.</p>
+    <div class="field-grid">
+      <div class="field">
+        <label for="f-jogador">Seu nome (jogador)</label>
+        <input type="text" id="f-jogador" placeholder="Como te chamamos na mesa">
+      </div>
+      <div class="field">
+        <label for="f-nome">Nome do personagem</label>
+        <input type="text" id="f-nome" placeholder="Como ele é chamado">
+      </div>
+      <div class="field">
+        <label for="f-idade">Idade e aparência, em poucas palavras</label>
+        <input type="text" id="f-idade" placeholder="Ex: 34 anos, cicatriz no olho esquerdo, cabelo grisalho">
+      </div>
+      <div class="field">
+        <label for="f-origem">De onde ele vem</label>
+        <input type="text" id="f-origem" placeholder="Vila, cidade, floresta, lugar nenhum">
+      </div>
+    </div>
+    <div class="slide-nav">
+      <button class="nav-back">← Voltar</button>
+      <button class="nav-next">Continuar</button>
+    </div>
+  </div>
+
+  <div class="slide" data-type="raca">
+    <div class="sec-eyebrow">II. Linhagem</div>
+    <h2>Escolha sua raça</h2>
+    <p class="lede">O sangue que corre nas suas veias molda como o mundo te vê antes mesmo de você abrir a boca.</p>
+    <div class="card-grid" id="grid-raca"></div>
+    <div class="slide-nav">
+      <button class="nav-back">← Voltar</button>
+      <span></span>
+    </div>
+  </div>
+
+  <div class="slide" data-type="classe">
+    <div class="sec-eyebrow">III. Vocação</div>
+    <h2>Escolha sua classe</h2>
+    <p class="lede">O caminho que ele escolheu — ou que escolheu por ele — pra sobreviver nesse mundo.</p>
+    <div class="card-grid" id="grid-classe"></div>
+    <div class="slide-nav">
+      <button class="nav-back">← Voltar</button>
+      <span></span>
+    </div>
+  </div>
+
+  <div class="slide" data-type="choice" data-cq="adj4">
+    <div class="slide-counter">Diante do perigo maior</div>
+    <label class="qbig">Diante de um inimigo claramente mais forte, seu personagem...</label>
+    <div class="choice-opts" data-cq="adj4"></div>
+    <div class="slide-nav"><button class="nav-back">← Voltar</button><span></span></div>
+  </div>
+
+  <div class="slide" data-type="choice" data-cq="adj1">
+    <div class="slide-counter">Instinto de combate</div>
+    <label class="qbig">No calor da batalha, seu personagem é mais...</label>
+    <div class="choice-opts" data-cq="adj1"></div>
+    <div class="slide-nav"><button class="nav-back">← Voltar</button><span></span></div>
+  </div>
+  <div class="slide" data-type="choice" data-cq="adj2">
+    <div class="slide-counter">Sob pressão</div>
+    <label class="qbig">Quando tudo dá errado, ele confia mais em...</label>
+    <div class="choice-opts" data-cq="adj2"></div>
+    <div class="slide-nav"><button class="nav-back">← Voltar</button><span></span></div>
+  </div>
+  <div class="slide" data-type="choice" data-cq="adj3">
+    <div class="slide-counter">Fora do combate</div>
+    <label class="qbig">Longe da briga, ele se destaca por...</label>
+    <div class="choice-opts" data-cq="adj3"></div>
+    <div class="slide-nav"><button class="nav-back">← Voltar</button><span></span></div>
+  </div>
+  <div class="slide" data-type="choice" data-cq="edge">
+    <div class="slide-counter">Um traço que define</div>
+    <label class="qbig">Escolha o que melhor descreve seu personagem</label>
+    <div class="choice-opts" data-cq="edge"></div>
+    <div class="slide-nav"><button class="nav-back">← Voltar</button><span></span></div>
+  </div>
+  <div class="slide" data-type="choice" data-cq="hmaior">
+    <div class="slide-counter">Um peso que carrega</div>
+    <label class="qbig">Escolha a marca mais forte do passado dele</label>
+    <div class="choice-opts" data-cq="hmaior"></div>
+    <div class="slide-nav"><button class="nav-back">← Voltar</button><span></span></div>
+  </div>
+  <div class="slide" data-type="choice" data-cq="hmenor">
+    <div class="slide-counter">Uma pequena falha</div>
+    <label class="qbig">Escolha um traço menor, mas real</label>
+    <div class="choice-opts" data-cq="hmenor"></div>
+    <div class="slide-nav"><button class="nav-back">← Voltar</button><span></span></div>
+  </div>
+
+  <div class="slide" data-type="loading">
+    <div class="loading-spinner"></div>
+    <p>Forjando seu personagem...</p>
+  </div>
+
+</div>
+
+<div id="summary">
+  <div class="wrap">
+    <div class="dossier" id="dossierContent"></div>
+    <div class="dossier-actions">
+      <button id="btnPrint">🖨️ Imprimir / Salvar em PDF</button>
+      <button id="btnEdit">✏️ Voltar e editar</button>
+    </div>
+  </div>
+</div>
+
+<footer>Ficha de criação de personagem — preencha com calma, o mestre agradece.</footer>
+
+<script>
+(function(){
+  // ---------- Controlador do quiz (slides) ----------
+  let slideEls = [];
+  let slideIdx = 0;
+  let advanceTimer = null;
+  let editMode = false;
+
+  function showSlide(i){
+    if(i<0 || i>=slideEls.length) return;
+    slideEls[slideIdx].classList.remove('active');
+    slideIdx = i;
+    slideEls[slideIdx].classList.add('active');
+    updateProgress();
+    updateJumpSelect();
+    window.scrollTo({ top:0, behavior:'auto' });
+    if(slideEls[slideIdx].dataset.type === 'loading'){
+      setTimeout(runForge, 1100);
+    }
+  }
+  function updateProgress(){
+    const fill = document.getElementById('progressFill');
+    if(!fill) return;
+    const pct = Math.round((slideIdx/(slideEls.length-1))*100);
+    fill.style.width = Math.min(100,pct)+'%';
+  }
+  function goNext(){ showSlide(slideIdx+1); }
+  function goBack(){ showSlide(slideIdx-1); }
+  function scheduleAdvance(delay){
+    clearTimeout(advanceTimer);
+    advanceTimer = setTimeout(goNext, delay||420);
+  }
+
+  function slideLabel(s){
+    const type = s.dataset.type;
+    if(type==='identidade') return 'Identidade (nome, idade, origem)';
+    if(type==='raca') return 'Raça';
+    if(type==='classe') return 'Classe';
+    const q = s.querySelector('.qbig');
+    if(q) return q.textContent.length>56 ? q.textContent.slice(0,56)+'…' : q.textContent;
+    return type;
+  }
+  function buildJumpMenu(){
+    const sel = document.getElementById('jumpSelect');
+    const opts = [];
+    slideEls.forEach((s,i)=>{
+      const type = s.dataset.type;
+      if(type==='intro' || type==='loading') return;
+      opts.push('<option value="'+i+'">'+slideLabel(s)+'</option>');
+    });
+    sel.innerHTML = opts.join('');
+  }
+  function updateJumpSelect(){
+    const sel = document.getElementById('jumpSelect');
+    if(sel && editMode) sel.value = String(slideIdx);
+  }
+
+  function initSlides(){
+    slideEls = Array.from(document.querySelectorAll('.slide'));
+    document.querySelectorAll('.nav-next').forEach(b=> b.addEventListener('click', goNext));
+    document.querySelectorAll('.nav-back').forEach(b=> b.addEventListener('click', goBack));
+    updateProgress();
+  }
+  initSlides();
+
+  const RACAS = [
+    { id:'humano', nome:'Humano', desc:'Adaptável e ambicioso. O que falta em talento nato, compensa em teimosia.', icon:'M12 2a4 4 0 100 8 4 4 0 000-8zM4 22c0-4.4 3.6-8 8-8s8 3.6 8 8' },
+    { id:'elfo', nome:'Elfo', desc:'Longevo e ligado à magia. Olhar de quem já viu séculos passarem em silêncio.', icon:'M12 2 L8 8 L12 14 L16 8 Z M12 14 L12 22' },
+    { id:'anao', nome:'Anão', desc:'Filho da pedra e do metal. Resistente, orgulhoso, difícil de derrubar.', icon:'M4 14 L12 6 L20 14 L20 20 L4 20 Z' },
+    { id:'halfling', nome:'Halfling', desc:'Pequeno e ágil. Subestimado por todos até ser tarde demais.', icon:'M12 3a3 3 0 100 6 3 3 0 000-6zM6 21c0-3.3 2.7-6 6-6s6 2.7 6 6' },
+    { id:'meio-orc', nome:'Meio-Orc', desc:'Força bruta, sangue dividido entre dois mundos que não o aceitam por completo.', icon:'M5 5 L19 19 M19 5 L5 19' },
+    { id:'gnomo', nome:'Gnomo', desc:'Engenhoso e curioso, obcecado por resolver o que não devia ser mexido.', icon:'M12 2 L14 9 L21 9 L15.5 13.5 L17.5 20.5 L12 16.5 L6.5 20.5 L8.5 13.5 L3 9 L10 9 Z' },
+    { id:'meio-elfo', nome:'Meio-Elfo', desc:'Nem um nem outro. Sempre em busca de um lugar que sinta como seu.', icon:'M12 2 L8 8 L12 14 L16 8 Z M4 22c0-3.3 2.7-6 6-6M20 22c0-3.3-2.7-6-6-6' },
+  ];
+  const CLASSES = [
+    { id:'guerreiro', nome:'Guerreiro', desc:'Vive pela lâmina e pela disciplina do combate.', icon:'M6 20 L18 8 M14 4 L20 10 L18 12 L12 6 Z' },
+    { id:'mago', nome:'Mago', desc:'Comanda forças que a maioria teme sequer nomear.', icon:'M12 2 L14 9 L21 9 L15.5 13.5 L17.5 20.5 L12 16.5 L6.5 20.5 L8.5 13.5 L3 9 L10 9 Z' },
+    { id:'ladino', nome:'Ladino', desc:'Sombra, faca e mentira afiada. Sobrevive pela esperteza.', icon:'M4 12 L10 6 L20 16 L14 22 Z M14 6 L18 10' },
+    { id:'clerigo', nome:'Clérigo', desc:'Serve a um poder maior — fé genuína, ou pacto forçado.', icon:'M12 2 L12 22 M6 8 L18 8' },
+    { id:'ranger', nome:'Ranger', desc:'Caçador e rastreador, mais confortável na mata que entre paredes.', icon:'M12 2 L12 22 M12 6 L4 10 M12 12 L20 16' },
+    { id:'barbaro', nome:'Bárbaro', desc:'Fúria pura. Força que ignora dor e ignora medo.', icon:'M5 19 L19 5 M9 3 L3 9 L15 21 L21 15 Z' },
+    { id:'bardo', nome:'Bardo', desc:'Palavras e música como arma — memória viva de histórias esquecidas.', icon:'M9 18a3 3 0 100-6 3 3 0 000 6zM9 15V4l10-2v11' },
+    { id:'druida', nome:'Druida', desc:'Voz da natureza selvagem. Muda de forma, comanda os elementos.', icon:'M12 2 C7 7 5 12 12 22 C19 12 17 7 12 2 Z' },
+  ];
+
+  let selectedRaca = null, selectedClasse = null;
+
+  const ATRIBUTOS = ['Agilidade','Astúcia','Espírito','Força','Vigor'];
+  const PERICIAS = ['Atirar','Atletismo','Furtividade','Intimidação','Intuição','Investigação','Lábia','Lutar','Notar','Pilotagem','Reparar','Sobrevivência','Cura','Ocultismo','Fé'];
+  const DICE_LABEL = { '4':'d4', '6':'d6', '8':'d8', '10':'d10', '12':'d12' };
+  const STEP = ['4','6','8','10','12'];
+  function bumpDie(cur){
+    if(!cur) return '4';
+    const idx = STEP.indexOf(String(cur));
+    return STEP[Math.min(idx+1, STEP.length-1)];
+  }
+
+  // Modelo base por classe — o jogador nunca vê isso diretamente, só o resultado final.
+  const CLASS_TEMPLATES = {
+    guerreiro: { attrs:{Agilidade:'6',Astúcia:'4',Espírito:'6',Força:'8',Vigor:'8'}, skills:{Lutar:'8',Atletismo:'6',Intimidação:'6',Notar:'4'} },
+    mago:      { attrs:{Agilidade:'6',Astúcia:'10',Espírito:'6',Força:'4',Vigor:'4'}, skills:{Ocultismo:'8',Investigação:'6',Notar:'6',Lutar:'4'} },
+    ladino:    { attrs:{Agilidade:'8',Astúcia:'8',Espírito:'6',Força:'4',Vigor:'4'}, skills:{Furtividade:'8',Lábia:'6',Notar:'6',Lutar:'6'} },
+    clerigo:   { attrs:{Agilidade:'4',Astúcia:'6',Espírito:'8',Força:'6',Vigor:'6'}, skills:{'Fé':'8',Cura:'6',Lutar:'6',Notar:'4'} },
+    ranger:    { attrs:{Agilidade:'8',Astúcia:'6',Espírito:'4',Força:'6',Vigor:'6'}, skills:{Atirar:'8',Sobrevivência:'6',Notar:'6',Furtividade:'6'} },
+    barbaro:   { attrs:{Agilidade:'4',Astúcia:'4',Espírito:'6',Força:'10',Vigor:'8'}, skills:{Lutar:'8',Intimidação:'6',Atletismo:'6',Notar:'4'} },
+    bardo:     { attrs:{Agilidade:'6',Astúcia:'8',Espírito:'6',Força:'4',Vigor:'4'}, skills:{Lábia:'8',Ocultismo:'4',Notar:'6',Lutar:'4'} },
+    druida:    { attrs:{Agilidade:'4',Astúcia:'6',Espírito:'8',Força:'6',Vigor:'6'}, skills:{Ocultismo:'8',Sobrevivência:'6',Cura:'6',Notar:'4'} },
+  };
+
+  const ADJUST_QUESTIONS = {
+    adj1: { options:[
+      { text:'Forte — golpeia com tudo o que tem', attr:'Força', skill:'Lutar' },
+      { text:'Ágil — evita golpes e contra-ataca rápido', attr:'Agilidade', skill:'Atirar' },
+      { text:'Astuto — usa truques, magia ou artimanhas', attr:'Astúcia', skill:'Ocultismo' },
+    ]},
+    adj2: { options:[
+      { text:'Resistência física — aguenta o que vier', attr:'Vigor', skill:'Atletismo' },
+      { text:'Raciocínio rápido — está sempre um passo à frente', attr:'Astúcia', skill:'Investigação' },
+      { text:'Força de vontade — não recua diante de nada', attr:'Espírito', skill:'Intimidação' },
+    ]},
+    adj3: { options:[
+      { text:'Conseguir se safar de qualquer aperto', attr:'Agilidade', skill:'Furtividade' },
+      { text:'Convencer qualquer um com as palavras certas', attr:'Astúcia', skill:'Lábia' },
+      { text:'Perceber o que os outros não veem', attr:'Espírito', skill:'Notar' },
+    ]},
+    adj4: { options:[
+      { text:'Aguenta o impacto e não recua um passo', attr:'Vigor', skill:'Atletismo' },
+      { text:'Aproveita a menor abertura pra golpear', attr:'Agilidade', skill:'Lutar' },
+      { text:'Recua com inteligência e escolhe outra hora pra lutar', attr:'Astúcia', skill:'Notar' },
+    ]},
+  };
+  const EDGE_OPTIONS = [
+    { text:'Duro de matar — dificilmente cai de vez, mesmo gravemente ferido', mech:'Duro de Matar' },
+    { text:'Braço forte — seus golpes acertam mais forte que os da maioria', mech:'Ataque Poderoso' },
+    { text:'Reflexos rápidos — quase sempre age antes de qualquer um', mech:'Reflexos Rápidos' },
+    { text:'Sortudo — o destino parece sempre favorecê-lo um pouco', mech:'Sortudo' },
+  ];
+  const HMAIOR_OPTIONS = [
+    { text:'Código de honra — nunca trai a palavra dada, custe o que custar', mech:'Código de Honra (Maior)' },
+    { text:'Vingativo — não esquece nem perdoa quem o prejudicou', mech:'Vingativo (Maior)' },
+    { text:'Inimigo poderoso — alguém influente quer vê-lo morto', mech:'Inimigo (Maior)' },
+  ];
+  const HMENOR_OPTIONS = [
+    { text:'Curioso — não resiste a investigar um mistério, mesmo perigoso', mech:'Curioso (Menor)' },
+    { text:'Teimoso — raramente aceita que está errado', mech:'Teimoso (Menor)' },
+    { text:'Ganancioso — dificilmente recusa uma boa recompensa', mech:'Ganancioso (Menor)' },
+    { text:'Leal demais — não abandona os companheiros, nem quando deveria', mech:'Leal (Menor)' },
+  ];
+
+  const choiceAnswers = {}; // { adj1: optionObj, adj2:..., edge:..., hmaior:..., hmenor:... }
+
+  function buildChoiceGroup(qid, options){
+    const container = document.querySelector('.choice-opts[data-cq="'+qid+'"]');
+    if(!container) return;
+    container.innerHTML = options.map((opt,i)=>
+      '<button type="button" class="choice-opt" data-i="'+i+'">'+opt.text+'</button>'
+    ).join('');
+    container.querySelectorAll('.choice-opt').forEach((btn,i)=>{
+      btn.addEventListener('click', ()=>{
+        container.querySelectorAll('.choice-opt').forEach(b=> b.classList.remove('sel'));
+        btn.classList.add('sel');
+        choiceAnswers[qid] = options[i];
+        scheduleAdvance();
+      });
+    });
+  }
+  buildChoiceGroup('adj1', ADJUST_QUESTIONS.adj1.options);
+  buildChoiceGroup('adj2', ADJUST_QUESTIONS.adj2.options);
+  buildChoiceGroup('adj3', ADJUST_QUESTIONS.adj3.options);
+  buildChoiceGroup('adj4', ADJUST_QUESTIONS.adj4.options);
+  buildChoiceGroup('edge', EDGE_OPTIONS);
+  buildChoiceGroup('hmaior', HMAIOR_OPTIONS);
+  buildChoiceGroup('hmenor', HMENOR_OPTIONS);
+
+  function computeFinalBuild(){
+    const classId = selectedClasse ? selectedClasse.id : 'guerreiro';
+    const tpl = CLASS_TEMPLATES[classId] || CLASS_TEMPLATES.guerreiro;
+    const attrs = {}; ATRIBUTOS.forEach(a=> attrs[a] = tpl.attrs[a] || '4');
+    const skills = {}; PERICIAS.forEach(s=> skills[s] = tpl.skills[s] || '');
+    ['adj1','adj2','adj3','adj4'].forEach(qid=>{
+      const ans = choiceAnswers[qid];
+      if(!ans) return;
+      attrs[ans.attr] = bumpDie(attrs[ans.attr]);
+      skills[ans.skill] = bumpDie(skills[ans.skill]);
+    });
+    const lutarDie = skills['Lutar'] ? parseInt(skills['Lutar']) : 0;
+    const vigorDie = parseInt(attrs['Vigor']);
+    const parry = lutarDie ? 2 + Math.floor(lutarDie/2) : 2;
+    const toughness = 2 + Math.floor(vigorDie/2);
+    return { attrs, skills, parry, toughness };
+  }
+
+  function iconSvg(path){
+    return '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="'+path+'"/></svg>';
+  }
+  function sealSvg(){
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="#e8dcc0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12 L9 17 L20 6"/></svg>';
+  }
+
+  function buildGrid(containerId, items, onSelect){
+    const grid = document.getElementById(containerId);
+    grid.innerHTML = items.map(it =>
+      '<div class="pick-card" data-id="'+it.id+'">'+
+        iconSvg(it.icon)+
+        '<h3>'+it.nome+'</h3>'+
+        '<p>'+it.desc+'</p>'+
+        '<div class="seal">'+sealSvg()+'</div>'+
+      '</div>'
+    ).join('');
+    grid.querySelectorAll('.pick-card').forEach(card=>{
+      card.addEventListener('click', ()=>{
+        grid.querySelectorAll('.pick-card').forEach(c=> c.classList.remove('selected'));
+        card.classList.add('selected');
+        onSelect(items.find(i=>i.id===card.dataset.id));
+        scheduleAdvance(600);
+      });
+    });
+  }
+
+  buildGrid('grid-raca', RACAS, (item)=>{ selectedRaca = item; });
+  buildGrid('grid-classe', CLASSES, (item)=>{ selectedClasse = item; });
+
+  function val(id){
+    const v = document.getElementById(id).value.trim();
+    return v;
+  }
+  function escapeHtml(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function dRow(label, value){
+    return '<div class="dcol"><div class="dlabel">'+label+'</div><div class="dval'+(value?'':' empty')+'">'+(value?escapeHtml(value):'—')+'</div></div>';
+  }
+
+  const WEAPON_BY_CLASS = {
+    guerreiro: { nome:'Espada Longa', dist:'Toque', dano:'Força+d8', pa:'—', cdt:'1', peso:'4kg' },
+    mago:      { nome:'Cajado', dist:'Toque', dano:'Força+d4', pa:'—', cdt:'1', peso:'2kg' },
+    ladino:    { nome:'Adaga', dist:'3/6/12', dano:'Força+d4', pa:'—', cdt:'1', peso:'1kg' },
+    clerigo:   { nome:'Maça', dist:'Toque', dano:'Força+d6', pa:'—', cdt:'1', peso:'3kg' },
+    ranger:    { nome:'Arco Curto', dist:'12/24/48', dano:'2d6', pa:'—', cdt:'3', peso:'2kg' },
+    barbaro:   { nome:'Machado Grande', dist:'Toque', dano:'Força+d10', pa:'—', cdt:'1', peso:'5kg' },
+    bardo:     { nome:'Espada Curta', dist:'Toque', dano:'Força+d6', pa:'—', cdt:'1', peso:'2kg' },
+    druida:    { nome:'Cajado', dist:'Toque', dano:'Força+d4', pa:'—', cdt:'1', peso:'2kg' },
+  };
+
+  // Poderes iniciais — só as classes com magia (Arcano/Fé/Natureza) recebem.
+  const POWERS_BY_CLASS = {
+    mago: [
+      { nome:'Rajada', pp:2, dist:'12/24/48', dur:'Instantâneo', efeito:'2d6 de dano à distância' },
+      { nome:'Armadura', pp:2, dist:'Toque', dur:'3 rodadas', efeito:'+2 Resistência' },
+      { nome:'Detectar Arcano', pp:1, dist:'Pessoal', dur:'3 rodadas', efeito:'Percebe magia e itens mágicos por perto' },
+    ],
+    clerigo: [
+      { nome:'Cura', pp:3, dist:'Toque', dur:'Instantâneo', efeito:'Remove 1 ferimento (até 1h após o dano)' },
+      { nome:'Proteção', pp:2, dist:'Toque', dur:'3 rodadas', efeito:'+2 Resistência para um aliado' },
+      { nome:'Luz', pp:1, dist:'Pessoal', dur:'10 minutos', efeito:'Ilumina uma área ao redor' },
+    ],
+    druida: [
+      { nome:'Cura', pp:3, dist:'Toque', dur:'Instantâneo', efeito:'Remove 1 ferimento (até 1h após o dano)' },
+      { nome:'Enredar', pp:2, dist:'12', dur:'3 rodadas', efeito:'Raízes prendem um alvo no lugar' },
+      { nome:'Amigo dos Animais', pp:1, dist:'12', dur:'10 minutos', efeito:'Acalma ou comanda um animal próximo' },
+    ],
+  };
+
+  const EQUIPMENT_BY_CLASS = {
+    guerreiro: ['Armadura de couro batido', 'Escudo', 'Mochila de viagem', 'Corda (15m) e 2 tochas', 'Cantil e rações (3 dias)', 'Algumas moedas de prata'],
+    mago:      ['Grimório pessoal', 'Componentes arcanos', 'Robe de viajante', 'Mochila', 'Cantil e rações (3 dias)', 'Algumas moedas de prata'],
+    ladino:    ['Kit de arrombamento', 'Corda fina com gancho', 'Capa escura', 'Mochila', 'Cantil e rações (3 dias)', 'Algumas moedas de prata'],
+    clerigo:   ['Símbolo sagrado', 'Vestes religiosas', 'Kit de cura', 'Mochila', 'Cantil e rações (3 dias)', 'Algumas moedas de prata'],
+    ranger:    ['Capa de camuflagem', 'Carcás com flechas extras', 'Kit de rastreamento', 'Mochila', 'Cantil e rações (5 dias)', 'Algumas moedas de prata'],
+    barbaro:   ['Peles de animal', 'Mochila resistente', 'Cantil e rações (3 dias)', 'Poucas moedas'],
+    bardo:     ['Instrumento musical', 'Roupas vistosas', 'Mochila', 'Cantil e rações (3 dias)', 'Algumas moedas de prata'],
+    druida:    ['Bolsa de ervas e componentes naturais', 'Roupas de fibra natural', 'Cantil e rações (3 dias)'],
+  };
+
+  function sidRow(label, value){
+    return '<div class="sid-row"><span class="sid-label">'+label+':</span><span class="sid-val'+(value?'':' empty')+'">'+(value?escapeHtml(value):'—')+'</span></div>';
+  }
+
+  function runForge(){
+    const jogador = val('f-jogador'), nome = val('f-nome'), idade = val('f-idade'), origem = val('f-origem');
+
+    const build = computeFinalBuild();
+    const classId = selectedClasse ? selectedClasse.id : 'guerreiro';
+    const weapon = WEAPON_BY_CLASS[classId];
+    const powers = POWERS_BY_CLASS[classId];
+
+    let html = '';
+
+    // ---- Cabeçalho de identificação ----
+    html += '<div class="sheet-header">';
+    html += '<div class="sheet-id">';
+    html += sidRow('Nome', nome);
+    html += sidRow('Jogador', jogador);
+    html += sidRow('Raça', selectedRaca ? selectedRaca.nome : '');
+    html += sidRow('Classe', selectedClasse ? selectedClasse.nome : '');
+    html += sidRow('Idade / Aparência', idade);
+    html += sidRow('Origem', origem);
+    html += sidRow('Benes', '3');
+    html += sidRow('Graduação', 'Novato');
+    if(powers) html += sidRow('Pontos de Poder', '10');
+    html += sidRow('Convicção', '—');
+    html += '</div>';
+    html += '<div class="sheet-derived">';
+    html += '<div class="sd-item"><div class="sd-circle">6</div><div class="sd-label">Movim.</div></div>';
+    html += '<div class="sd-item"><div class="sd-circle">'+build.parry+'</div><div class="sd-label">Aparar</div></div>';
+    html += '<div class="sd-item"><div class="sd-circle">'+build.toughness+'</div><div class="sd-label">Resistência</div></div>';
+    html += '</div>';
+    html += '</div>';
+
+    // ---- Grid de 4 colunas: Atributos / Perícias / Equipamento / Complicações+Vantagens ----
+    html += '<div class="sheet-grid">';
+
+    html += '<div class="sheet-box"><h4>Atributos</h4>';
+    ATRIBUTOS.forEach(a=>{
+      html += '<div class="attr-line"><span>'+a+'</span><b>'+DICE_LABEL[build.attrs[a]]+'</b></div>';
+    });
+    html += '</div>';
+
+    html += '<div class="sheet-box"><h4>Perícias</h4>';
+    PERICIAS.forEach(s=>{
+      if(build.skills[s]) html += '<div class="skill-line"><span>'+s+'</span><b>'+DICE_LABEL[build.skills[s]]+'</b></div>';
+    });
+    html += '</div>';
+
+    html += '<div class="sheet-box"><h4>Equipamento</h4>';
+    const equipList = EQUIPMENT_BY_CLASS[classId] || [];
+    html += '<div class="box-text">'+equipList.map(escapeHtml).join('<br>')+'</div>';
+    html += '</div>';
+
+    html += '<div class="sheet-box"><h4>Complicações &amp; Vantagens</h4>';
+    html += '<div class="sub-h5">Vantagem</div>';
+    html += '<div class="box-text'+(choiceAnswers.edge?'':' empty')+'">'+(choiceAnswers.edge?escapeHtml(choiceAnswers.edge.mech)+' — '+escapeHtml(choiceAnswers.edge.text):'—')+'</div>';
+    html += '<div class="sub-h5">Complicação Maior</div>';
+    html += '<div class="box-text'+(choiceAnswers.hmaior?'':' empty')+'">'+(choiceAnswers.hmaior?escapeHtml(choiceAnswers.hmaior.mech)+' — '+escapeHtml(choiceAnswers.hmaior.text):'—')+'</div>';
+    html += '<div class="sub-h5">Complicação Menor</div>';
+    html += '<div class="box-text'+(choiceAnswers.hmenor?'':' empty')+'">'+(choiceAnswers.hmenor?escapeHtml(choiceAnswers.hmenor.mech)+' — '+escapeHtml(choiceAnswers.hmenor.text):'—')+'</div>';
+    html += '</div>';
+
+    html += '</div>'; // fim sheet-grid
+
+    // ---- Tabela de Arma ----
+    // ---- Tabela de Poder (só classes com magia) ----
+    if(powers){
+      html += '<div class="sheet-table"><h4>Poder</h4>';
+      html += '<table class="wtable"><tr><th>Poder</th><th>PP</th><th>Dist.</th><th>Dur.</th><th>Efeito</th></tr>';
+      powers.forEach(p=>{
+        html += '<tr><td>'+p.nome+'</td><td>'+p.pp+'</td><td>'+p.dist+'</td><td>'+p.dur+'</td><td>'+p.efeito+'</td></tr>';
+      });
+      html += '</table></div>';
+    }
+
+    html += '<div class="sheet-table"><h4>Arma</h4>';
+    html += '<table class="wtable"><tr><th>Arma</th><th>Dist.</th><th>Dano</th><th>PA</th><th>CdT</th><th>Peso</th></tr>';
+    html += '<tr><td>'+weapon.nome+'</td><td>'+weapon.dist+'</td><td>'+weapon.dano+'</td><td>'+weapon.pa+'</td><td>'+weapon.cdt+'</td><td>'+weapon.peso+'</td></tr>';
+    html += '<tr><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>';
+    html += '</table></div>';
+
+    // ---- Ferimentos / Fadiga ----
+    html += '<div class="sheet-trackers">';
+    html += '<div class="tracker"><div class="sub-h5">Ferimentos</div><div class="tracker-boxes"><div class="tbox">−1</div><div class="tbox">−2</div><div class="tbox">−3</div><div class="tbox">INC</div></div></div>';
+    html += '<div class="tracker"><div class="sub-h5">Fadiga</div><div class="tracker-boxes"><div class="tbox">−1</div><div class="tbox">−2</div><div class="tbox">INC</div></div></div>';
+    html += '</div>';
+
+    document.getElementById('dossierContent').innerHTML = html;
+    document.querySelector('.progress-track').style.display = 'none';
+    document.querySelector('.quiz-viewport').style.display = 'none';
+    document.getElementById('editToolbar').style.display = 'none';
+    const summary = document.getElementById('summary');
+    summary.style.display = 'block';
+    window.scrollTo({ top:0, behavior:'auto' });
+  }
+
+  document.getElementById('btnPrint').addEventListener('click', ()=> window.print());
+  document.getElementById('btnEdit').addEventListener('click', ()=>{
+    document.getElementById('summary').style.display = 'none';
+    document.querySelector('.progress-track').style.display = 'block';
+    const vp = document.querySelector('.quiz-viewport');
+    vp.style.display = 'flex';
+    vp.classList.add('with-toolbar');
+    editMode = true;
+    document.getElementById('editToolbar').style.display = 'flex';
+    buildJumpMenu();
+    showSlide(1); // pula a tela de boas-vindas, vai direto pra primeira pergunta
+  });
+  document.getElementById('jumpSelect').addEventListener('change', function(){
+    showSlide(+this.value);
+  });
+  document.getElementById('btnJumpToResult').addEventListener('click', ()=>{
+    runForge();
+  });
+})();
+</script>
+
+</body>
+</html>
