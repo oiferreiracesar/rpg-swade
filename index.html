@@ -3,119 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SWADE RPG - Menu</title>
+    <title>RPG Suade - Menu</title>
+    <!-- Importação das fontes do projeto base -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    
     <style>
-        /* Variáveis de Cores - Tema Dark com Destaque SWADE */
+        /* Variáveis exatas do seu código base */
         :root {
-            --bg-color: #121214;
-            --card-bg: #202024;
-            --text-main: #e1e1e6;
-            --text-muted: #a8a8b3;
-            --swade-accent: #f39c12; /* Dourado/Laranja característico */
+            --bg: #0b0d0c;
+            --bg2: #141815;
+            --bg3: #1b201c;
+            --parchment: #e8dcc0;
+            --parchment-dim: #d9cba3;
+            --iron: #3a3f3d;
+            --iron-light: #565c58;
+            --blood: #6e1f1f;
+            --blood-bright: #9c3230;
+            --bronze: #a8823c;
+            --bronze-bright: #c9a45e;
+            --ink: #e6ded0;
+            --ink-dim: #9b9488;
         }
 
-        /* Reset e Configurações Base */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            /* Fundo idêntico ao da página de criação */
+            background: radial-gradient(ellipse 1200px 700px at 50% -10%, #1a1510 0%, var(--bg) 60%);
+            background-color: var(--bg);
+            color: var(--ink);
+            font-family: 'EB Garamond', serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            padding: 3rem 1rem;
+            padding: 4rem 1.5rem;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Container que simula a tela de um App */
+        /* Container que simula a tela do App */
         .container {
             width: 100%;
             max-width: 420px;
             display: flex;
             flex-direction: column;
-            gap: 2.5rem;
+            gap: 3rem;
         }
 
-        /* Cabeçalho */
+        /* Cabeçalho no estilo "Hero" */
         .header {
             text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 1rem;
+            position: relative;
         }
 
-        /* Ícone principal (Substitui a Logo) */
         .logo-vetor {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #f39c12, #d35400);
-            border-radius: 20px;
+            width: 70px;
+            height: 70px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 8px 16px rgba(243, 156, 18, 0.2);
+            margin-bottom: 0.5rem;
         }
 
         .header h1 {
-            font-size: 1.8rem;
-            font-weight: 800;
-            letter-spacing: 0.5px;
+            font-family: 'Cinzel', serif;
+            font-size: 2.2rem;
+            color: var(--parchment);
+            letter-spacing: .03em;
+            text-shadow: 0 2px 24px rgba(0,0,0,.6);
+            margin-bottom: 4px;
         }
 
         .header p {
-            color: var(--text-muted);
+            color: var(--bronze-bright);
             font-size: 0.95rem;
+            font-style: italic;
+            letter-spacing: .16em;
+            text-transform: uppercase;
         }
 
-        /* Lista de Links */
+        /* Linha divisória ornamental */
+        .divider {
+            height: 1px;
+            width: 60%;
+            margin: 0 auto;
+            background: linear-gradient(90deg, transparent, var(--iron), transparent);
+        }
+
+        /* Menu de Links (Adaptado da classe .pick-card) */
         .links-menu {
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: 1.2rem;
         }
 
-        /* Estilo dos Botões */
         .botao-link {
-            background-color: var(--card-bg);
-            color: var(--text-main);
-            text-decoration: none;
+            position: relative;
+            background: linear-gradient(160deg, var(--bg3), #171b17);
+            border: 1px solid var(--iron);
+            border-radius: 3px;
             padding: 1.2rem;
-            border-radius: 16px;
+            cursor: pointer;
+            transition: border-color .18s, transform .18s, background .18s;
             display: flex;
             align-items: center;
             gap: 1.2rem;
-            transition: all 0.2s ease;
-            border: 2px solid transparent;
+            text-decoration: none;
         }
 
         .botao-link:hover {
-            background-color: #29292e;
-            transform: translateY(-3px);
-            border-color: var(--swade-accent);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border-color: var(--iron-light);
+            transform: translateY(-2px);
+            background: linear-gradient(160deg, #221614, #171b17);
         }
 
-        /* Área do ícone dentro do botão */
-        .icone-caixa {
+        /* Destaque para o hover imitando a seleção da ficha */
+        .botao-link:hover h2 {
+            color: var(--parchment);
+        }
+        
+        .botao-link:hover .icon {
+            color: var(--blood-bright);
+        }
+
+        /* Ícones dentro dos botões */
+        .icon {
+            width: 32px;
+            height: 32px;
+            color: var(--bronze);
+            transition: color .18s;
+            flex-shrink: 0;
+        }
+
+        /* Textos do Botão */
+        .texto-botao {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 48px;
-            height: 48px;
-            background-color: rgba(243, 156, 18, 0.1);
-            border-radius: 12px;
+            flex-direction: column;
+            gap: 4px;
         }
 
-        .botao-link span {
+        .botao-link h2 {
+            font-family: 'Cinzel', serif;
             font-size: 1.1rem;
-            font-weight: 600;
+            color: var(--parchment-dim);
+            letter-spacing: .02em;
+            transition: color .18s;
         }
+
+        .botao-link p {
+            font-size: 0.88rem;
+            color: var(--ink-dim);
+            line-height: 1.3;
+            font-style: italic;
+        }
+
     </style>
 </head>
 <body>
@@ -124,49 +175,52 @@
         
         <!-- CABEÇALHO -->
         <header class="header">
-            <!-- Vetor D20/Polígono simulando uma logo -->
             <div class="logo-vetor">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#121214" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <!-- D20 com as cores da paleta (bronze) -->
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="var(--bronze)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
                     <polyline points="2 17 12 22 22 17"></polyline>
                     <polyline points="2 12 12 17 22 12"></polyline>
                 </svg>
             </div>
+            
             <div>
-                <h1>SWADE RPG</h1>
+                <h1>RPG Suade</h1>
                 <p>Savage Worlds Adventure Edition</p>
             </div>
+            
+            <div class="divider"></div>
         </header>
 
-        <!-- MENU DE LINKS -->
+        <!-- MENU DE LINKS (Baseado nos cards de seleção) -->
         <nav class="links-menu">
             
             <!-- Link 1: Criação de Personagem -->
-            <!-- Mude 'criacao.html' para o nome do arquivo que você vai subir no GitHub -->
-            <a href="charmaker.html" class="botao-link">
-                <div class="icone-caixa">
-                    <!-- Vetor: Usuário/Edição -->
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--swade-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="8.5" cy="7" r="4"></circle>
-                        <polyline points="17 11 19 13 23 9"></polyline>
-                    </svg>
+            <a href="criacao.html" class="botao-link">
+                <!-- SVG Vetor -->
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <polyline points="17 11 19 13 23 9"></polyline>
+                </svg>
+                <div class="texto-botao">
+                    <h2>Criação de Personagem</h2>
+                    <p>Forje o seu herói antes da batalha.</p>
                 </div>
-                <span>Criação de Personagem</span>
             </a>
 
             <!-- Link 2: Table Top -->
-            <!-- Mude 'tabletop.html' para o nome do arquivo da sua página de mapas/mesa -->
             <a href="tabletop.html" class="botao-link">
-                <div class="icone-caixa">
-                    <!-- Vetor: Mapa/Grid -->
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--swade-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
-                        <line x1="9" y1="3" x2="9" y2="18"></line>
-                        <line x1="15" y1="6" x2="15" y2="21"></line>
-                    </svg>
+                <!-- SVG Vetor -->
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
+                    <line x1="9" y1="3" x2="9" y2="18"></line>
+                    <line x1="15" y1="6" x2="15" y2="21"></line>
+                </svg>
+                <div class="texto-botao">
+                    <h2>Mesa Virtual (Table Top)</h2>
+                    <p>Acesse o grid e role os dados.</p>
                 </div>
-                <span>Table Top</span>
             </a>
 
         </nav>
