@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mente Plena — Tabuleiro Virtual</title>
+<title>SWADE RPG — Tabuleiro Virtual</title>
 <style>
   :root{
     --bg:#0c0d10;
@@ -174,13 +174,10 @@
   .token{
     position:absolute; width:42px; height:42px; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
-    background:#1a1a1a; border:2px solid var(--gold);
     font-size:1.25rem; cursor:grab; user-select:none;
-    box-shadow:0 3px 10px rgba(0,0,0,.5);
     transform:translate(-50%,-50%);
   }
   .token:active{ cursor:grabbing; }
-  .token.player{ border-color:#4d7ea8; }
   .token.player.lit{ box-shadow: 0 0 12px 4px rgba(255,214,140,.85); }
 
   .tokenStatus{
@@ -235,6 +232,15 @@
   }
   @keyframes shakenPulse{ 0%,100%{outline-color:#f0a820;} 50%{outline-color:#ffcf70;} }
 
+  .token.multi-sel{
+    outline:2px solid var(--gold); outline-offset:3px;
+    box-shadow:0 0 8px 1px rgba(199,154,75,.7);
+  }
+  .rubberband{
+    position:absolute; border:1.5px dashed var(--gold);
+    background:rgba(199,154,75,0.15); pointer-events:none; z-index:60;
+  }
+
   .token.turnActive{
     box-shadow: 0 0 0 3px #4dd0e1, 0 0 16px 4px rgba(77,208,225,.85);
     animation: turnPulse 1s ease-in-out infinite;
@@ -251,7 +257,7 @@
   .doorMarker:hover{ border-color:var(--gold); }
   .doorMarker.open{ border-color:#639922; }
   .token.monster{ border-color:var(--danger); }
-  .token img{ width:100%; height:100%; object-fit:cover; border-radius:50%; }
+  .token img{ width:100%; height:100%; object-fit:contain; }
   .tokenVisual{ width:100%; height:100%; display:flex; align-items:center; justify-content:center; transition:transform .12s; }
 
   .tokenSelBox{
@@ -313,7 +319,7 @@
     font-size:.8rem;
   }
   .initRow.joker{ border-color:var(--gold); background:#2a2008; }
-  .initRow.active{ outline:2px solid var(--rust2); }
+  .initRow.active{ outline:2px solid var(--rust2); background:rgba(181,80,47,0.18); }
   .initCard{
     width:32px; height:32px; border-radius:4px; background:#fff; color:#000;
     display:flex; align-items:center; justify-content:center; font-weight:bold;
@@ -351,6 +357,11 @@
   .mapRow img{
     width:34px; height:34px; object-fit:cover; border-radius:3px;
     border:1px solid var(--line); flex-shrink:0; cursor:pointer;
+  }
+  .mapRow .mapThumbVideo{
+    width:34px; height:34px; border-radius:3px; border:1px solid var(--gold);
+    flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    background:var(--bg3); font-size:1rem;
   }
   .mapRow input[type=text]{
     flex:1; min-width:0; background:var(--panel2); border:1px solid var(--line);
@@ -400,6 +411,13 @@
   }
   .charThumb img{ width:100%; height:100%; object-fit:cover; }
   .charName{ flex:1; font-size:.78rem; }
+  .charDownBtn{
+    width:24px; height:24px; border-radius:50%; flex-shrink:0; font-size:.7rem;
+    cursor:pointer; border:1px solid var(--line); background:var(--panel);
+    display:flex; align-items:center; justify-content:center; color:var(--dim);
+  }
+  .charDownBtn.has{ border-color:var(--gold); color:var(--gold); }
+  .charDownBtn input{ display:none; }
   .charNameInput{
     flex:1; min-width:0; font-size:.78rem; font-family:inherit;
     background:var(--panel2); border:1px solid var(--line); color:var(--ink);
@@ -414,6 +432,19 @@
     position:fixed; bottom:16px; right:20px; display:flex; gap:6px;
     background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:6px;
     z-index:20;
+  }
+  .multiSelectBar{
+    position:fixed; bottom:64px; right:20px; display:flex; align-items:center; gap:10px;
+    background:var(--panel); border:1px solid #4dd0e1; border-radius:6px; padding:8px 12px;
+    z-index:20; font-size:.78rem; color:var(--ink);
+  }
+  .multiSelectBar button{ padding:4px 10px; font-size:.72rem; }
+  .token.multi-selected{
+    outline:2px dashed #4dd0e1; outline-offset:3px;
+  }
+  .marqueeBox{
+    position:absolute; border:1px dashed #4dd0e1; background:rgba(77,208,225,0.15);
+    pointer-events:none; display:none; z-index:5;
   }
 
   .notif{
@@ -460,6 +491,7 @@
     <button data-tab="atmosfera">🌩️ Atmosfera</button>
     <button data-tab="mesa">🎲 Mesa</button>
     <button data-tab="tela">📺 Tela do Jogador</button>
+    <button data-tab="resumo">📋 Resumão</button>
     <button data-tab="referencia">📚 Referência</button>
   </div>
 
@@ -470,9 +502,10 @@
     <div class="block" style="width:300px">
       <h2>🗺️ Mapas</h2>
       <p class="hint">Adicione quantos mapas quiser (uma cena, uma variação, uma sala nova...). Clique em "Mostrar" pra trocar. Cada mapa guarda seus próprios tokens, paredes e portas.</p>
+      <p class="hint">🎥 Também aceita vídeo e 🎞️ GIF animado (mapa em loop) — ⚠️ vídeos não ficam salvos na Sessão, precisa subir de novo se recarregar. GIFs ficam salvos normalmente.</p>
       <div class="row">
         <label class="fileBtn"><button class="wide">+ Adicionar mapa(s)</button>
-          <input type="file" id="mapAddInput" accept="image/*" multiple>
+          <input type="file" id="mapAddInput" accept="image/*,video/*" multiple>
         </label>
       </div>
       <div id="mapList"></div>
@@ -644,10 +677,12 @@
 
     <div class="block">
       <h2>🛠️ Gerenciar tokens</h2>
+      <button id="btnSelectMode" class="wide">🖱️ Modo seleção em grupo</button>
       <button id="btnRemoveMode" class="wide">🗑️ Modo remover token</button>
       <button id="btnClearTokens" class="wide danger">Limpar todos os tokens</button>
       <button id="btnExport" class="wide">⬇ Exportar imagem (PNG)</button>
       <p class="hint">Clique num token da paleta para colocá-lo no centro do tabuleiro, depois arraste até a posição certa. Clique duas vezes num token para removê-lo, ou use o modo remover.</p>
+      <p class="hint">🖱️ Modo seleção: arraste um retângulo sobre vários tokens pra selecioná-los juntos (igual Photoshop), ou clique em cada um. Depois é só arrastar qualquer um deles — o grupo inteiro se move junto.</p>
     </div>
 
   </div>
@@ -733,6 +768,10 @@
 
     <div class="block" style="width:280px">
       <h2>Ordem da Rodada</h2>
+      <div class="row" style="justify-content:center; gap:6px; margin-bottom:8px;">
+        <button id="btnTurnPrev">◀ Anterior</button>
+        <button id="btnTurnNext" style="background:var(--rust);border-color:var(--rust);color:#fff;">Próximo Turno ▶</button>
+      </div>
       <div id="initList" style="display:flex;flex-direction:column;gap:4px;max-height:340px;overflow-y:auto;"></div>
     </div>
 
@@ -756,7 +795,7 @@
     </div>
 
     <div class="block" style="width:260px">
-      <h2>⏱️ Cronômetro</h2>
+      <h2>⏱️ Timer (contagem regressiva)</h2>
       <div class="row">
         <div>
           <label class="small">Minutos</label>
@@ -775,6 +814,21 @@
       </div>
       <div class="row">
         <div class="switch" id="btnTimerShow"></div>
+        <span style="font-size:.75rem">Mostrar na tela do jogador</span>
+      </div>
+    </div>
+
+    <div class="block" style="width:230px">
+      <h2>⏳ Cronômetro (contagem crescente)</h2>
+      <p class="hint">Conta o tempo passando, sem limite — pra medir quanto tempo levou algo, sem contagem regressiva.</p>
+      <div id="stopwatchDisplay" style="text-align:center; font-size:2.1rem; font-weight:700; padding:8px 0;">00:00</div>
+      <div class="row" style="justify-content:center; gap:6px;">
+        <button id="btnStopwatchStart">▶️ Iniciar</button>
+        <button id="btnStopwatchPause">⏸️ Pausar</button>
+        <button id="btnStopwatchReset">🔄 Zerar</button>
+      </div>
+      <div class="row">
+        <div class="switch" id="btnStopwatchShow"></div>
         <span style="font-size:.75rem">Mostrar na tela do jogador</span>
       </div>
     </div>
@@ -867,6 +921,21 @@
           <button id="btnVideoClose" class="danger" title="Fechar e voltar ao mapa">✕ Fechar</button>
         </div>
       </div>
+    </div>
+
+  </div>
+
+  <div class="ribbonPanel" data-panel="resumo">
+
+    <div class="block" style="width:400px">
+      <h2>📋 Cole seu Resumão de Mesa</h2>
+      <p class="hint">Cole aqui o resumão da campanha que você está rodando (NPCs, stats, dificuldades, twists, finais). Aceita **negrito**, # títulos e listas com "- ". Fica salvo na sessão.</p>
+      <textarea id="resumaoText" placeholder="Cole ou digite seu resumão aqui..." style="width:100%; min-height:380px; background:var(--panel2); border:1px solid var(--line); color:var(--ink); font-family:inherit; font-size:.85rem; border-radius:2px; padding:10px; resize:vertical;"></textarea>
+    </div>
+
+    <div class="block" style="width:400px">
+      <h2>👁️ Prévia</h2>
+      <div id="resumaoPreview" style="background:var(--panel2); border:1px solid var(--line); border-radius:2px; padding:14px; min-height:380px; font-size:.85rem; line-height:1.6; overflow-y:auto; max-height:600px;"></div>
     </div>
 
   </div>
@@ -999,6 +1068,11 @@
   </main>
 </div>
 
+<div class="multiSelectBar" id="multiSelectBar" style="display:none;">
+  <span id="multiSelectCount">0 selecionados</span>
+  <button id="btnClearMultiSelect">Limpar</button>
+</div>
+
 <div class="zoomBar">
   <button id="btnPanMode" title="Arrastar pra navegar pelo mapa quando estiver com zoom">🖐️ Mover tela</button>
   <button id="zoomOut">−</button>
@@ -1038,8 +1112,8 @@
     return mapTransformByMap[id];
   }
   function computeCoverFit(img){
-    const iw = (img && (img.naturalWidth||img.width)) || W;
-    const ih = (img && (img.naturalHeight||img.height)) || H;
+    const iw = (img && (img.naturalWidth||img.videoWidth||img.width)) || W;
+    const ih = (img && (img.naturalHeight||img.videoHeight||img.height)) || H;
     if(!iw || !ih) return { scale:1, offsetX:0, offsetY:0 };
     const scale = Math.max(W/iw, H/ih);
     return { scale, offsetX: (W-iw*scale)/2, offsetY: (H-ih*scale)/2 };
@@ -1100,6 +1174,7 @@
     attachWallEvents();
     attachMeasureEvents();
     attachTemplateEvents();
+    attachSelectionEvents();
     renderDoors();
   }
 
@@ -1110,8 +1185,8 @@
     ctxMap.fillRect(0,0,W,H);
     if(currentImg){
       const t = getMapTransform(currentMapId);
-      const iw = currentImg.naturalWidth || currentImg.width || W;
-      const ih = currentImg.naturalHeight || currentImg.height || H;
+      const iw = currentImg.naturalWidth || currentImg.videoWidth || currentImg.width || W;
+      const ih = currentImg.naturalHeight || currentImg.videoHeight || currentImg.height || H;
       ctxMap.drawImage(currentImg, t.offsetX, t.offsetY, iw*t.scale, ih*t.scale);
     }
     if(gridOn){
@@ -1258,9 +1333,17 @@
 
   document.getElementById('mapAddInput').addEventListener('change', e=>{
     Array.from(e.target.files).forEach(file=>{
-      const reader = new FileReader();
-      reader.onload = ev=> addMap(ev.target.result, file.name.replace(/\.[^.]+$/,''));
-      reader.readAsDataURL(file);
+      const isVideo = file.type.indexOf('video/')===0;
+      const isGif = file.type === 'image/gif';
+      const name = file.name.replace(/\.[^.]+$/,'');
+      if(isVideo){
+        const url = URL.createObjectURL(file);
+        addMap(url, name, false, true, false);
+      } else {
+        const reader = new FileReader();
+        reader.onload = ev=> addMap(ev.target.result, name, false, false, isGif);
+        reader.readAsDataURL(file);
+      }
     });
     e.target.value = '';
   });
@@ -1292,21 +1375,51 @@
     showNotif('🖼️ Mapa reajustado automaticamente');
   });
 
-  function addMap(src, name, silent){
-    const img = new Image();
+  let mapVideoAnimHandle = null;
+  function stepMapVideo(){
+    const current = maps.find(m=>m.id===currentMapId);
+    if(current && (current.isVideo || current.isGif)){
+      drawMap();
+      mapVideoAnimHandle = requestAnimationFrame(stepMapVideo);
+    } else {
+      mapVideoAnimHandle = null;
+    }
+  }
+  function ensureMapVideoLoop(){
+    if(!mapVideoAnimHandle){ mapVideoAnimHandle = requestAnimationFrame(stepMapVideo); }
+  }
+
+  function addMap(src, name, silent, isVideo, isGif){
     const id = 'm'+(mapSeq++);
-    img.onload = ()=>{
-      if(!mapTransformByMap[id]) mapTransformByMap[id] = computeCoverFit(img);
-      if(currentMapId===id) drawMap();
-    };
-    img.src = src;
-    const rec = { id, name: name || ('Mapa '+(maps.length+1)), img, src };
+    let el;
+    if(isVideo){
+      el = document.createElement('video');
+      el.muted = true; el.loop = true; el.autoplay = true; el.playsInline = true;
+      el.addEventListener('loadedmetadata', ()=>{
+        if(!mapTransformByMap[id]) mapTransformByMap[id] = computeCoverFit(el);
+        if(currentMapId===id){ drawMap(); ensureMapVideoLoop(); }
+      });
+      el.src = src;
+      el.play().catch(()=>{});
+    } else {
+      el = new Image();
+      el.onload = ()=>{
+        if(!mapTransformByMap[id]) mapTransformByMap[id] = computeCoverFit(el);
+        if(currentMapId===id){ drawMap(); if(isGif) ensureMapVideoLoop(); }
+      };
+      el.src = src;
+      if(isGif){
+        el.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;pointer-events:none;left:-9999px;top:0;';
+        document.body.appendChild(el);
+      }
+    }
+    const rec = { id, name: name || ('Mapa '+(maps.length+1)), img: el, src, isVideo: !!isVideo, isGif: !!isGif };
     maps.push(rec);
     wallsByMap[id] = wallsByMap[id] || [];
     doorsByMap[id] = doorsByMap[id] || [];
     if(!mapCanvas){ if(placeholder && placeholder.parentNode) placeholder.remove(); buildStage(); }
     renderMapList();
-    if(!silent) showNotif('+ Mapa adicionado: '+rec.name);
+    if(!silent) showNotif((isVideo?'🎥 ':isGif?'🎞️ ':'+ ')+'Mapa adicionado: '+rec.name);
     if(!currentMapId) showMapById(id);
     return rec;
   }
@@ -1319,15 +1432,18 @@
       const row = document.createElement('div');
       row.className = 'mapRow';
       row.innerHTML =
-        '<img src="'+m.src+'">'+
+        (m.isVideo ? '<span class="mapThumbVideo">🎥</span>' : '<img src="'+m.src+'">')+
         '<input type="text" value="'+m.name.replace(/"/g,'&quot;')+'">'+
         '<button data-act="show" class="'+(currentMapId===m.id?'active':'')+'">Mostrar</button>'+
         '<button data-act="del">🗑</button>';
-      row.querySelector('img').addEventListener('click', ()=> showMapById(m.id));
+      const thumb = row.querySelector('img, .mapThumbVideo');
+      thumb.addEventListener('click', ()=> showMapById(m.id));
       row.querySelector('input').addEventListener('input', e=>{ m.name = e.target.value; updateStatus(); });
       row.querySelector('[data-act="show"]').addEventListener('click', ()=> showMapById(m.id));
       row.querySelector('[data-act="del"]').addEventListener('click', ()=>{
         if(!confirm('Remover "'+m.name+'"? As paredes/portas dele e os tokens marcados nele também somem.')) return;
+        if(m.isVideo && m.img){ m.img.pause(); m.img.removeAttribute('src'); m.img.load(); }
+        if(m.isGif && m.img && m.img.parentNode){ m.img.parentNode.removeChild(m.img); }
         maps = maps.filter(x=>x.id!==m.id);
         delete wallsByMap[m.id]; delete doorsByMap[m.id];
         document.querySelectorAll('.token').forEach(t=>{ if(t.dataset.mapkey===m.id) t.remove(); });
@@ -1363,6 +1479,9 @@
   function showMapById(id){
     const m = maps.find(x=>x.id===id);
     if(!m) return;
+    maps.forEach(other=>{
+      if(other.isVideo && other.id!==id && other.img && !other.img.paused) other.img.pause();
+    });
     currentMapId = id;
     currentMapKey = id;
     currentImg = m.img;
@@ -1372,6 +1491,12 @@
     doorPending = null;
     activeTemplate = null;
     if(ctxTemplate) ctxTemplate.clearRect(0,0,W,H);
+    if(m.isVideo){
+      m.img.play().catch(()=>{});
+      ensureMapVideoLoop();
+    } else if(m.isGif){
+      ensureMapVideoLoop();
+    }
     drawMap();
     renderDoors();
     applyMapVisibility();
@@ -1456,8 +1581,8 @@
   // ---------- Personagens / Itens / Monstros (upload genérico, 3 categorias) ----------
   let customPlayers = [];
   let customPlayerSeq = 0;
-  function addCustomPlayer(src, name, silent){
-    const rec = { id:'cplay'+(customPlayerSeq++), name: name || 'Personagem', src };
+  function addCustomPlayer(src, name, silent, srcDown){
+    const rec = { id:'cplay'+(customPlayerSeq++), name: name || 'Personagem', src, srcDown: srcDown||null };
     customPlayers.push(rec);
     renderCustomPlayerList();
     if(!silent) showNotif('+ Personagem adicionado: '+rec.name);
@@ -1473,10 +1598,22 @@
       row.innerHTML =
         '<div class="charThumb"><img src="'+o.src+'"></div>'+
         '<input type="text" class="charNameInput" value="'+o.name.replace(/"/g,'&quot;')+'">'+
+        '<label class="charDownBtn'+(o.srcDown?' has':'')+'" title="Imagem alternativa: caído/derrotado (troca sozinho quando marcar Incapacitado)">'+(o.srcDown?'🖼️✓':'🖼️+')+
+          '<input type="file" accept="image/*"></label>'+
         '<button data-act="del" style="padding:5px 8px;font-size:.65rem;flex-shrink:0;">🗑</button>';
-      const place = ()=> addToken(null, o.name, 'player', '#4d7ea8', o.src);
+      const place = ()=> addToken(null, o.name, 'player', '#4d7ea8', o.src, { imgDown: o.srcDown });
       row.querySelector('.charThumb').addEventListener('click', place);
       row.querySelector('.charNameInput').addEventListener('input', e=>{ o.name = e.target.value; });
+      const downInput = row.querySelector('.charDownBtn input');
+      downInput.addEventListener('click', e=> e.stopPropagation());
+      downInput.addEventListener('change', e=>{
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = ev=>{ o.srcDown = ev.target.result; renderCustomPlayerList(); showNotif('🖼️ Imagem de caído definida pra '+o.name); };
+        reader.readAsDataURL(file);
+      });
+      row.querySelector('.charDownBtn').addEventListener('click', e=> e.stopPropagation());
       row.querySelector('[data-act="del"]').addEventListener('click', (e)=>{
         e.stopPropagation();
         customPlayers = customPlayers.filter(x=>x.id!==o.id);
@@ -1539,8 +1676,8 @@
 
   let customMonsters = [];
   let customMonsterSeq = 0;
-  function addCustomMonster(src, name, silent){
-    const rec = { id:'cmon'+(customMonsterSeq++), name: name || 'Monstro', src };
+  function addCustomMonster(src, name, silent, srcDown){
+    const rec = { id:'cmon'+(customMonsterSeq++), name: name || 'Monstro', src, srcDown: srcDown||null };
     customMonsters.push(rec);
     renderCustomMonsterList();
     if(!silent) showNotif('+ Monstro/NPC adicionado: '+rec.name);
@@ -1556,10 +1693,22 @@
       row.innerHTML =
         '<div class="charThumb"><img src="'+o.src+'"></div>'+
         '<input type="text" class="charNameInput" value="'+o.name.replace(/"/g,'&quot;')+'">'+
+        '<label class="charDownBtn'+(o.srcDown?' has':'')+'" title="Imagem alternativa: caído/derrotado (troca sozinho quando marcar Incapacitado)">'+(o.srcDown?'🖼️✓':'🖼️+')+
+          '<input type="file" accept="image/*"></label>'+
         '<button data-act="del" style="padding:5px 8px;font-size:.65rem;flex-shrink:0;">🗑</button>';
-      const place = ()=> addToken(null, o.name, 'monster', '#c0392b', o.src);
+      const place = ()=> addToken(null, o.name, 'monster', '#c0392b', o.src, { imgDown: o.srcDown });
       row.querySelector('.charThumb').addEventListener('click', place);
       row.querySelector('.charNameInput').addEventListener('input', e=>{ o.name = e.target.value; });
+      const downInput = row.querySelector('.charDownBtn input');
+      downInput.addEventListener('click', e=> e.stopPropagation());
+      downInput.addEventListener('change', e=>{
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = ev=>{ o.srcDown = ev.target.result; renderCustomMonsterList(); showNotif('🖼️ Imagem de caído definida pra '+o.name); };
+        reader.readAsDataURL(file);
+      });
+      row.querySelector('.charDownBtn').addEventListener('click', e=> e.stopPropagation());
       row.querySelector('[data-act="del"]').addEventListener('click', (e)=>{
         e.stopPropagation();
         customMonsters = customMonsters.filter(x=>x.id!==o.id);
@@ -1623,10 +1772,12 @@
     el.dataset.preso = opts.preso!=null?opts.preso:'false';
     el.dataset.incapacitado = opts.incapacitado!=null?opts.incapacitado:'false';
     el.dataset.notes = opts.notes!=null?opts.notes:'';
+    el.dataset.imgUp = imgSrc || '';
+    el.dataset.imgDown = opts.imgDown || '';
     if(color) el.style.borderColor = color;
     if(cat==='player') el.dataset.lightOn = opts.lightOn!=null?opts.lightOn:'false';
     el.innerHTML = imgSrc
-      ? '<div class="tokenVisual"><img src="'+imgSrc+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;pointer-events:none"></div><span class="lbl">'+label+'</span>'
+      ? '<div class="tokenVisual"><img class="tokImg" src="'+imgSrc+'" style="width:100%;height:100%;object-fit:contain;pointer-events:none"></div><span class="lbl">'+label+'</span>'
       : '<div class="tokenVisual"><span class="tokenEmoji" style="font-size:1.25rem">'+emoji+'</span></div><span class="lbl">'+label+'</span>';
     tokenLayer.appendChild(el);
     makeDraggable(el);
@@ -1657,6 +1808,14 @@
     const wounds = parseInt(el.dataset.wounds||'0');
     const fatigue = parseInt(el.dataset.fatigue||'0');
     const shaken = el.dataset.shaken === 'true';
+    if(el.dataset.imgDown){
+      const imgEl = el.querySelector('.tokImg');
+      if(imgEl){
+        const wantDown = el.dataset.incapacitado === 'true';
+        const wantSrc = wantDown ? el.dataset.imgDown : el.dataset.imgUp;
+        if(wantSrc && imgEl.getAttribute('src') !== wantSrc) imgEl.setAttribute('src', wantSrc);
+      }
+    }
     let statusEl = el.querySelector('.tokenStatus');
     if(!statusEl){
       statusEl = document.createElement('div');
@@ -1707,7 +1866,7 @@
       condEl.className = 'tokenConditions';
       el.appendChild(condEl);
     }
-    const active = CONDITIONS.filter(c => el.dataset[c.key] === 'true');
+    const active = CONDITIONS.filter(c => c.key!=='incapacitado' && el.dataset[c.key] === 'true');
     condEl.innerHTML = active.map(c =>
       '<span class="condPill" style="background:'+c.color+'" title="'+c.label+'">'+c.abbr+'</span>'
     ).join('');
@@ -1753,6 +1912,7 @@
 
   let selectedToken = null;
   let selBox = null;
+  let multiSelected = [];
   let statusPanel = null;
 
   function closeTokenMenu(){
@@ -1967,6 +2127,12 @@
       el.dataset.startLeft = parseFloat(el.style.left);
       el.dataset.startTop = parseFloat(el.style.top);
       el.style.zIndex = 50;
+      if(multiSelected.includes(el) && multiSelected.length>1){
+        multiSelected.forEach(t=>{
+          t.dataset.groupStartLeft = parseFloat(t.style.left);
+          t.dataset.groupStartTop = parseFloat(t.style.top);
+        });
+      }
       e.stopPropagation();
     }
     function move(e){
@@ -1977,25 +2143,38 @@
       const scaleX = W / r.width, scaleY = H / r.height;
       const dx = (cx-offX)*scaleX, dy=(cy-offY)*scaleY;
       if(Math.abs(dx)>3 || Math.abs(dy)>3) moved = true;
-      let nl = parseFloat(el.dataset.startLeft)+dx;
-      let nt = parseFloat(el.dataset.startTop)+dy;
-      nl = Math.max(0,Math.min(W,nl)); nt = Math.max(0,Math.min(H,nt));
-      el.style.left = nl+'px'; el.style.top = nt+'px';
+      if(multiSelected.includes(el) && multiSelected.length>1){
+        multiSelected.forEach(t=>{
+          let nl = parseFloat(t.dataset.groupStartLeft)+dx;
+          let nt = parseFloat(t.dataset.groupStartTop)+dy;
+          nl = Math.max(0,Math.min(W,nl)); nt = Math.max(0,Math.min(H,nt));
+          t.style.left = nl+'px'; t.style.top = nt+'px';
+        });
+      } else {
+        let nl = parseFloat(el.dataset.startLeft)+dx;
+        let nt = parseFloat(el.dataset.startTop)+dy;
+        nl = Math.max(0,Math.min(W,nl)); nt = Math.max(0,Math.min(H,nt));
+        el.style.left = nl+'px'; el.style.top = nt+'px';
+      }
     }
     function up(){
       if(!dragging) return;
       dragging=false; el.style.zIndex=1;
+      const group = multiSelected.includes(el) && multiSelected.length>1;
       if(!moved){
-        if(el.classList.contains('player')) toggleTokenLight(el);
+        if(!group && el.classList.contains('player')) toggleTokenLight(el);
       } else if(snapToGrid){
         const cols = parseInt(document.getElementById('gridCols').value)||20;
         const rows = parseInt(document.getElementById('gridRows').value)||13;
         const cw = W/cols, ch = H/rows;
-        let nl = parseFloat(el.style.left), nt = parseFloat(el.style.top);
-        const col = Math.floor(nl/cw), row = Math.floor(nt/ch);
-        nl = Math.min(W, Math.max(0, col*cw + cw/2));
-        nt = Math.min(H, Math.max(0, row*ch + ch/2));
-        el.style.left = nl+'px'; el.style.top = nt+'px';
+        const targets = group ? multiSelected : [el];
+        targets.forEach(t=>{
+          let nl = parseFloat(t.style.left), nt = parseFloat(t.style.top);
+          const col = Math.floor(nl/cw), row = Math.floor(nt/ch);
+          nl = Math.min(W, Math.max(0, col*cw + cw/2));
+          nt = Math.min(H, Math.max(0, row*ch + ch/2));
+          t.style.left = nl+'px'; t.style.top = nt+'px';
+        });
       }
     }
     el.addEventListener('mousedown', down);
@@ -2005,6 +2184,86 @@
     window.addEventListener('touchmove', move, {passive:true});
     window.addEventListener('touchend', up);
   }
+
+  // ---------- Seleção em grupo (retângulo estilo Photoshop) ----------
+  let groupSelectMode = false;
+  function clearMultiSelection(){
+    multiSelected.forEach(t=> t.classList.remove('multi-sel'));
+    multiSelected = [];
+  }
+  function selectionLayerPos(e){
+    const r = tokenLayer.getBoundingClientRect();
+    const cx = (e.touches?e.touches[0].clientX:e.clientX) - r.left;
+    const cy = (e.touches?e.touches[0].clientY:e.clientY) - r.top;
+    return { x: cx*(W/r.width), y: cy*(H/r.height) };
+  }
+  function attachSelectionEvents(){
+    let selecting = false, selStartX=0, selStartY=0, selBoxEl=null;
+    function updateBox(x2,y2){
+      const x = Math.min(selStartX,x2), y = Math.min(selStartY,y2);
+      const w = Math.abs(x2-selStartX), h = Math.abs(y2-selStartY);
+      selBoxEl.style.left = x+'px'; selBoxEl.style.top = y+'px';
+      selBoxEl.style.width = w+'px'; selBoxEl.style.height = h+'px';
+      return {x,y,w,h};
+    }
+    function down(e){
+      if(!groupSelectMode) return;
+      if(e.target !== tokenLayer) return;
+      clearMultiSelection();
+      selecting = true;
+      const p = selectionLayerPos(e);
+      selStartX = p.x; selStartY = p.y;
+      selBoxEl = document.createElement('div');
+      selBoxEl.className = 'rubberband';
+      tokenLayer.appendChild(selBoxEl);
+      updateBox(p.x, p.y);
+    }
+    function move(e){
+      if(!selecting || !selBoxEl) return;
+      const p = selectionLayerPos(e);
+      updateBox(p.x, p.y);
+    }
+    function up(e){
+      if(!selecting) return;
+      selecting = false;
+      const p = selectionLayerPos(e);
+      const box = selBoxEl ? updateBox(p.x,p.y) : {x:0,y:0,w:0,h:0};
+      if(selBoxEl){ selBoxEl.remove(); selBoxEl=null; }
+      if(box.w<6 && box.h<6) return;
+      document.querySelectorAll('.token').forEach(t=>{
+        if(t.classList.contains('map-hidden') || t.classList.contains('cat-hidden')) return;
+        const tx = parseFloat(t.style.left), ty = parseFloat(t.style.top);
+        if(tx>=box.x && tx<=box.x+box.w && ty>=box.y && ty<=box.y+box.h){
+          t.classList.add('multi-sel');
+          multiSelected.push(t);
+        }
+      });
+      if(multiSelected.length>1) showNotif('🔲 '+multiSelected.length+' tokens selecionados — arraste um deles pra mover todos juntos');
+      else clearMultiSelection();
+    }
+    tokenLayer.addEventListener('mousedown', down);
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  }
+  window.addEventListener('keydown', e=>{
+    if(e.key==='Escape') clearMultiSelection();
+  });
+  document.getElementById('btnSelectMode').addEventListener('click', function(){
+    if(!mapCanvas){ alert('Carregue um mapa primeiro.'); return; }
+    groupSelectMode = !groupSelectMode;
+    this.classList.toggle('active', groupSelectMode);
+    this.textContent = groupSelectMode ? '🖱️ Modo seleção (ativo) — arraste no mapa' : '🖱️ Modo seleção em grupo';
+    tokenLayer.style.cursor = groupSelectMode ? 'crosshair' : 'default';
+    if(groupSelectMode){
+      if(wallMode){ wallMode=false; document.getElementById('btnWallMode').classList.remove('on'); wallCanvas.style.pointerEvents='none'; wallPending=null; drawWalls(); }
+      if(doorMode){ doorMode=false; document.getElementById('btnDoorMode').classList.remove('on'); doorPending=null; drawWalls(); }
+      if(measureMode){ measureMode=false; document.getElementById('btnMeasureMode').classList.remove('on'); measureCanvas.style.pointerEvents='none'; measureStart=null; if(ctxMeasure) ctxMeasure.clearRect(0,0,W,H); }
+      if(templateMode){ templateMode=false; document.getElementById('btnTemplateMode').classList.remove('on'); templateCanvas.style.pointerEvents='none'; activeTemplate=null; if(ctxTemplate) ctxTemplate.clearRect(0,0,W,H); }
+      if(panMode){ panMode=false; document.getElementById('btnPanMode').classList.remove('active'); panOverlay.style.display='none'; }
+    } else {
+      clearMultiSelection();
+    }
+  });
 
   document.getElementById('btnRemoveMode').addEventListener('click', function(){
     removeMode = !removeMode;
@@ -2042,13 +2301,13 @@
       const img = t.querySelector('img');
       if(img && img.complete && img.naturalWidth){
         octx.save();
-        octx.beginPath();
-        octx.arc(left, top, size/2, 0, Math.PI*2);
-        octx.clip();
         octx.translate(left, top);
         octx.rotate(rot);
         octx.scale(flip?-1:1, 1);
-        octx.drawImage(img, -size/2, -size/2, size, size);
+        const iw = img.naturalWidth, ih = img.naturalHeight;
+        const arScale = Math.min(size/iw, size/ih);
+        const dw = iw*arScale, dh = ih*arScale;
+        octx.drawImage(img, -dw/2, -dh/2, dw, dh);
         octx.restore();
       } else {
         const emojiEl = t.querySelector('.tokenEmoji');
@@ -2122,7 +2381,7 @@
           octx.strokeStyle = '#2e7d32'; octx.lineWidth = 1; octx.stroke();
         }
       }
-      const activeConds = CONDITIONS.filter(c => t.dataset[c.key] === 'true');
+      const activeConds = CONDITIONS.filter(c => c.key!=='incapacitado' && t.dataset[c.key] === 'true');
       if(activeConds.length>0){
         let cy = top - 8;
         const cx = left + size/2 + 4;
@@ -2174,7 +2433,7 @@
       let sx = (W-totalW)/2, sy = 10;
       initOrder.forEach((o,idx)=>{
         const x = sx + idx*(cw+gap);
-        octx.fillStyle = idx===0 ? 'rgba(192,57,43,0.9)' : 'rgba(10,10,14,0.8)';
+        octx.fillStyle = idx===currentTurnIndex ? 'rgba(192,57,43,0.9)' : 'rgba(10,10,14,0.8)';
         octx.fillRect(x, sy, cw, ch+16);
         octx.fillStyle = o.card.joker ? '#c8890a' : '#fff';
         octx.fillRect(x+3, sy+3, cw-6, ch-6);
@@ -2195,6 +2454,17 @@
       octx.fillStyle = (timerRemaining<=10 && timerRemaining>0) ? '#e24b4a' : '#f0d9a0';
       octx.textAlign = 'center'; octx.textBaseline = 'middle';
       octx.fillText(label, bx+8+tw/2, by+21);
+    }
+    if(showStopwatchToPlayer){
+      const label2 = formatStopwatch(stopwatchElapsed);
+      octx.font = 'bold 26px sans-serif';
+      const tw2 = octx.measureText(label2).width;
+      const bx2 = 40, by2 = 10;
+      octx.fillStyle = 'rgba(10,10,14,0.85)';
+      octx.fillRect(bx2-8, by2, tw2+32, 42);
+      octx.fillStyle = '#8fd4a8';
+      octx.textAlign = 'center'; octx.textBaseline = 'middle';
+      octx.fillText(label2, bx2+8+tw2/2, by2+21);
     }
     return out;
   }
@@ -2225,7 +2495,8 @@
         mapkey: t.dataset.mapkey,
         borderColor: t.style.borderColor,
         hidden: t.classList.contains('cat-hidden'),
-        imgSrc: img ? img.src : null,
+        imgSrc: t.dataset.imgUp || (img ? img.src : null),
+        imgDown: t.dataset.imgDown || null,
         emoji: emojiEl ? emojiEl.textContent : null,
         label: t.querySelector('.lbl') ? t.querySelector('.lbl').textContent : ''
       };
@@ -2234,7 +2505,7 @@
     return {
       version: 2,
       currentMapKey: currentMapId,
-      maps: maps.map(m=>({ id:m.id, name:m.name, src:m.src })),
+      maps: maps.map(m=>({ id:m.id, name:m.name, src: m.isVideo ? null : m.src, isVideo: !!m.isVideo, isGif: !!m.isGif })),
       fog: (ctxFog && mapCanvas) ? fogCanvas.toDataURL() : null,
       walls: wallsByMap,
       doors: doorsByMap,
@@ -2242,9 +2513,10 @@
       tokens,
       documents: docsData,
       customObjects: customObjects.map(o=>({ name:o.name, src:o.src })),
-      customPlayers: customPlayers.map(o=>({ name:o.name, src:o.src })),
-      customMonsters: customMonsters.map(o=>({ name:o.name, src:o.src })),
+      customPlayers: customPlayers.map(o=>({ name:o.name, src:o.src, srcDown:o.srcDown||null })),
+      customMonsters: customMonsters.map(o=>({ name:o.name, src:o.src, srcDown:o.srcDown||null })),
       campaignName: document.getElementById('campaignName') ? document.getElementById('campaignName').value : '',
+      resumaoText: document.getElementById('resumaoText') ? document.getElementById('resumaoText').value : '',
       grid: {
         cols: document.getElementById('gridCols').value,
         rows: document.getElementById('gridRows').value,
@@ -2291,21 +2563,25 @@
     mapSeq = 0;
     currentMapId = null;
     currentImg = null;
+    let skippedVideoMaps = 0;
     if(data.maps && Array.isArray(data.maps)){
       for(const m of data.maps){
+        if(m.isVideo || !m.src){ skippedVideoMaps++; continue; }
         const img = await loadImgAsync(m.src);
         const id = m.id || ('m'+(mapSeq++));
-        maps.push({ id, name: m.name || 'Mapa', img, src: m.src });
+        maps.push({ id, name: m.name || 'Mapa', img, src: m.src, isVideo:false, isGif: !!m.isGif });
         wallsByMap[id] = wallsByMap[id] || [];
         doorsByMap[id] = doorsByMap[id] || [];
       }
     }
+    if(skippedVideoMaps>0) showNotif('⚠️ '+skippedVideoMaps+' mapa(s) em vídeo não foram restaurados — suba de novo.');
     const wantId = data.currentMapKey;
     const target = maps.find(m=>m.id===wantId) || maps[0];
     if(target){
       currentMapId = target.id;
       currentMapKey = target.id;
       currentImg = target.img;
+      if(target.isGif) ensureMapVideoLoop();
     }
     walls = wallsByMap[currentMapKey] || [];
     doors = doorsByMap[currentMapKey] || [];
@@ -2330,6 +2606,10 @@
     } else initFog();
 
     if(document.getElementById('campaignName')) document.getElementById('campaignName').value = data.campaignName || '';
+    if(document.getElementById('resumaoText')){
+      document.getElementById('resumaoText').value = data.resumaoText || '';
+      if(typeof renderResumaoPreview === 'function') renderResumaoPreview();
+    }
 
     (data.tokens||[]).forEach(t=>{
       addToken(t.emoji, t.label, t.cat, t.borderColor, t.imgSrc, {
@@ -2339,7 +2619,7 @@
         distraido: t.distraido, vulneravel: t.vulneravel,
         atordoado: t.atordoado, enredado: t.enredado,
         preso: t.preso, incapacitado: t.incapacitado, notes: t.notes,
-        mapkey: t.mapkey
+        mapkey: t.mapkey, imgDown: t.imgDown
       });
     });
 
@@ -2353,11 +2633,11 @@
     renderCustomObjectList();
 
     customPlayers = [];
-    (data.customPlayers||[]).forEach(o=> addCustomPlayer(o.src, o.name, true));
+    (data.customPlayers||[]).forEach(o=> addCustomPlayer(o.src, o.name, true, o.srcDown));
     renderCustomPlayerList();
 
     customMonsters = [];
-    (data.customMonsters||[]).forEach(o=> addCustomMonster(o.src, o.name, true));
+    (data.customMonsters||[]).forEach(o=> addCustomMonster(o.src, o.name, true, o.srcDown));
     renderCustomMonsterList();
 
     if(data.dramatic){
@@ -2779,6 +3059,19 @@
     });
   }
 
+  let currentTurnIndex = 0;
+  function goToTurn(idx){
+    if(initOrder.length===0){ showNotif('⚠️ Clique em "Nova Rodada" primeiro pra sortear as cartas.'); return; }
+    if(idx<0) idx = initOrder.length-1;
+    if(idx>=initOrder.length) idx = 0;
+    currentTurnIndex = idx;
+    renderInitList();
+    highlightTurnToken(initOrder[idx].name);
+    showNotif('▶ Turno de: '+initOrder[idx].name);
+  }
+  document.getElementById('btnTurnNext').addEventListener('click', ()=> goToTurn(currentTurnIndex+1));
+  document.getElementById('btnTurnPrev').addEventListener('click', ()=> goToTurn(currentTurnIndex-1));
+
   function drawInitiative(){
     if(combatants.length === 0){ alert('Adicione ao menos um combatente.'); return; }
     const deck = buildDeck();
@@ -2790,6 +3083,7 @@
       if(b.card.rank !== a.card.rank) return b.card.rank - a.card.rank;
       return b.card.prio - a.card.prio;
     });
+    currentTurnIndex = 0;
     renderInitList();
     if(initOrder.length>0) highlightTurnToken(initOrder[0].name);
     showNotif('🎴 Nova rodada — cartas distribuídas');
@@ -2810,18 +3104,14 @@
     }
     initOrder.forEach((o,idx)=>{
       const row = document.createElement('div');
-      row.className = 'initRow' + (o.card.joker?' joker':'') + (idx===0?' active':'');
+      row.className = 'initRow' + (o.card.joker?' joker':'') + (idx===currentTurnIndex?' active':'');
       const cardClass = o.card.joker ? 'initCard joker' : ('initCard' + (o.card.color==='red'?' red':''));
       const cardLabel = o.card.joker ? '🃏' : (o.card.label + o.card.suit);
       row.innerHTML =
         '<div class="'+cardClass+'">'+cardLabel+'</div>'+
         '<span class="initName">'+o.name+'</span>'+
         (o.card.joker ? '<span class="initJokerTag">CURINGA +2!</span>' : '');
-      row.addEventListener('click', ()=>{
-        list.querySelectorAll('.initRow').forEach(r=>r.classList.remove('active'));
-        row.classList.add('active');
-        highlightTurnToken(o.name);
-      });
+      row.addEventListener('click', ()=> goToTurn(idx));
       list.appendChild(row);
     });
   }
@@ -2986,6 +3276,45 @@
   });
   document.getElementById('btnTimerShow').addEventListener('click', function(){
     showTimerToPlayer = this.classList.toggle('on');
+  });
+
+  // ---------- Cronômetro (contagem crescente) ----------
+  let stopwatchElapsed = 0;
+  let stopwatchRunning = false;
+  let stopwatchInterval = null;
+  let showStopwatchToPlayer = false;
+
+  function formatStopwatch(s){
+    s = Math.max(0, Math.floor(s));
+    const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+    return (h>0 ? String(h).padStart(2,'0')+':' : '') + String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+  }
+  function updateStopwatchDisplay(){
+    document.getElementById('stopwatchDisplay').textContent = formatStopwatch(stopwatchElapsed);
+  }
+  document.getElementById('btnStopwatchStart').addEventListener('click', ()=>{
+    if(stopwatchRunning) return;
+    stopwatchRunning = true;
+    const startedAt = Date.now();
+    const startElapsed = stopwatchElapsed;
+    clearInterval(stopwatchInterval);
+    stopwatchInterval = setInterval(()=>{
+      stopwatchElapsed = startElapsed + (Date.now()-startedAt)/1000;
+      updateStopwatchDisplay();
+    }, 200);
+  });
+  document.getElementById('btnStopwatchPause').addEventListener('click', ()=>{
+    stopwatchRunning = false;
+    clearInterval(stopwatchInterval);
+  });
+  document.getElementById('btnStopwatchReset').addEventListener('click', ()=>{
+    stopwatchRunning = false;
+    clearInterval(stopwatchInterval);
+    stopwatchElapsed = 0;
+    updateStopwatchDisplay();
+  });
+  document.getElementById('btnStopwatchShow').addEventListener('click', function(){
+    showStopwatchToPlayer = this.classList.toggle('on');
   });
 
   // ---------- Soundboard de Efeitos ----------
@@ -3375,6 +3704,12 @@
       document.getElementById('btnTemplateMode').classList.remove('on');
       templateCanvas.style.pointerEvents = 'none';
     }
+    if(wallMode && groupSelectMode){
+      groupSelectMode = false;
+      const b = document.getElementById('btnSelectMode');
+      b.classList.remove('active'); b.textContent='🖱️ Modo seleção em grupo';
+      tokenLayer.style.cursor='default'; clearMultiSelection();
+    }
     drawWalls();
   });
   document.getElementById('btnWallFinish').addEventListener('click', ()=>{
@@ -3413,6 +3748,12 @@
       templateMode = false;
       document.getElementById('btnTemplateMode').classList.remove('on');
       templateCanvas.style.pointerEvents = 'none';
+    }
+    if(doorMode && groupSelectMode){
+      groupSelectMode = false;
+      const b = document.getElementById('btnSelectMode');
+      b.classList.remove('active'); b.textContent='🖱️ Modo seleção em grupo';
+      tokenLayer.style.cursor='default'; clearMultiSelection();
     }
     drawWalls();
   });
@@ -3524,6 +3865,12 @@
       document.getElementById('btnTemplateMode').classList.remove('on');
       templateCanvas.style.pointerEvents = 'none';
     }
+    if(measureMode && groupSelectMode){
+      groupSelectMode = false;
+      const b = document.getElementById('btnSelectMode');
+      b.classList.remove('active'); b.textContent='🖱️ Modo seleção em grupo';
+      tokenLayer.style.cursor='default'; clearMultiSelection();
+    }
     if(!measureMode){ ctxMeasure.clearRect(0,0,W,H); measureStart = null; }
   });
   document.getElementById('btnMeasureClear').addEventListener('click', ()=>{
@@ -3613,6 +3960,12 @@
       if(measureMode){ measureMode=false; document.getElementById('btnMeasureMode').classList.remove('on'); measureCanvas.style.pointerEvents='none'; measureStart=null; if(ctxMeasure) ctxMeasure.clearRect(0,0,W,H); }
       if(wallMode){ wallMode=false; document.getElementById('btnWallMode').classList.remove('on'); wallPending=null; drawWalls(); }
       if(doorMode){ doorMode=false; document.getElementById('btnDoorMode').classList.remove('on'); doorPending=null; drawWalls(); }
+      if(groupSelectMode){
+        groupSelectMode = false;
+        const b = document.getElementById('btnSelectMode');
+        b.classList.remove('active'); b.textContent='🖱️ Modo seleção em grupo';
+        tokenLayer.style.cursor='default'; clearMultiSelection();
+      }
       wallCanvas.style.pointerEvents='none';
     } else {
       activeTemplate = null;
@@ -3747,6 +4100,12 @@
     panMode = !panMode;
     this.classList.toggle('active', panMode);
     panOverlay.style.display = panMode ? 'block' : 'none';
+    if(panMode && groupSelectMode){
+      groupSelectMode = false;
+      const b = document.getElementById('btnSelectMode');
+      b.classList.remove('active'); b.textContent='🖱️ Modo seleção em grupo';
+      tokenLayer.style.cursor='default'; clearMultiSelection();
+    }
     showNotif(panMode ? '🖐️ Modo mover tela ativo — arraste pra navegar' : '🖐️ Modo mover tela desligado');
   });
 
@@ -3828,6 +4187,39 @@
       }
     } catch(err){}
   })();
+
+  // ---------- Resumão de Mesa ----------
+  function escapeHtmlResumao(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function renderResumaoPreview(){
+    const raw = document.getElementById('resumaoText').value;
+    const lines = raw.split('\n');
+    let html = ''; let inList = false;
+    lines.forEach(line=>{
+      let l = escapeHtmlResumao(line);
+      l = l.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      if(/^#{1,3}\s+/.test(line)){
+        if(inList){ html += '</ul>'; inList=false; }
+        const level = line.match(/^#+/)[0].length;
+        const text = l.replace(/^#{1,3}\s+/, '');
+        html += '<h'+(level+2)+' style="color:var(--gold); margin:10px 0 4px;">'+text+'</h'+(level+2)+'>';
+      } else if(/^-\s+/.test(line)){
+        if(!inList){ html += '<ul style="margin:4px 0; padding-left:18px;">'; inList=true; }
+        html += '<li>'+l.replace(/^-\s+/, '')+'</li>';
+      } else if(line.trim()===''){
+        if(inList){ html += '</ul>'; inList=false; }
+        html += '<div style="height:6px"></div>';
+      } else {
+        if(inList){ html += '</ul>'; inList=false; }
+        html += '<p style="margin:4px 0;">'+l+'</p>';
+      }
+    });
+    if(inList) html += '</ul>';
+    document.getElementById('resumaoPreview').innerHTML = html || '<span style="color:var(--dim)">A prévia aparece aqui conforme você escreve...</span>';
+  }
+  document.getElementById('resumaoText').addEventListener('input', renderResumaoPreview);
+  renderResumaoPreview();
 
 })();
 </script>
