@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SWADE RPG — Tabuleiro Virtual</title>
+<title>Mente Plena — Tabuleiro Virtual</title>
 <style>
   :root{
     --bg:#0c0d10;
@@ -572,6 +572,7 @@
         <span class="hint" style="margin:0">Formato:</span>
         <button id="shapeBrush" class="active">⚪ Pincel</button>
         <button id="shapeRect">▭ Retângulo</button>
+        <button id="shapeCircle">⭕ Círculo</button>
       </div>
       <div class="row">
         <label class="small" style="width:100%">Tamanho do pincel</label>
@@ -583,6 +584,12 @@
         <button id="btnFogUndo">↩ Desfazer</button>
       </div>
       <p class="hint">Clique e arraste sobre o mapa para revelar ou cobrir áreas.</p>
+
+      <div class="row" style="border-top:1px solid var(--line); padding-top:8px; margin-top:4px;">
+        <div class="switch" id="btnSalasMode"></div>
+        <span style="font-size:.75rem">📌 Modo Salas — desenha uma sala reutilizável (Retângulo/Círculo) em vez de pintar na hora; depois é só clicar nela pra revelar/cobrir de novo</span>
+      </div>
+      <div id="fogSalasList" style="display:flex; flex-direction:column; gap:4px; margin-top:8px;"></div>
     </div>
 
     <div class="block" style="width:320px">
@@ -1097,7 +1104,7 @@
 
   const stage = document.getElementById('stage');
   const placeholder = document.getElementById('placeholder');
-  let mapCanvas, fogCanvas, fxCanvas, lightCanvas, wallCanvas, measureCanvas, templateCanvas, ctxMap, ctxFog, ctxFx, ctxLight, ctxWall, ctxMeasure, ctxTemplate, tokenLayer;
+  let mapCanvas, fogCanvas, fogShapeCanvas, fxCanvas, lightCanvas, wallCanvas, measureCanvas, templateCanvas, ctxMap, ctxFog, ctxFogShape, ctxFx, ctxLight, ctxWall, ctxMeasure, ctxTemplate, tokenLayer;
   let W = 900, H = 585;
   let currentImg = null;
   let maps = [];
@@ -1145,6 +1152,7 @@
     selectedToken = null; selBox = null;
     mapCanvas = document.createElement('canvas');
     fogCanvas = document.createElement('canvas');
+    fogShapeCanvas = document.createElement('canvas');
     fxCanvas = document.createElement('canvas');
     lightCanvas = document.createElement('canvas');
     wallCanvas = document.createElement('canvas');
@@ -1152,18 +1160,20 @@
     templateCanvas = document.createElement('canvas');
     tokenLayer = document.createElement('div');
     tokenLayer.id = 'tokenLayer';
-    [mapCanvas, fogCanvas, fxCanvas, lightCanvas, wallCanvas, measureCanvas, templateCanvas].forEach(c=>{ c.width=W; c.height=H; c.style.width=W+'px'; c.style.height=H+'px'; c.style.position='absolute'; c.style.top='0'; c.style.left='0'; });
+    [mapCanvas, fogCanvas, fogShapeCanvas, fxCanvas, lightCanvas, wallCanvas, measureCanvas, templateCanvas].forEach(c=>{ c.width=W; c.height=H; c.style.width=W+'px'; c.style.height=H+'px'; c.style.position='absolute'; c.style.top='0'; c.style.left='0'; });
     fxCanvas.style.pointerEvents = 'none';
     lightCanvas.style.pointerEvents = 'none';
+    fogShapeCanvas.style.pointerEvents = 'none';
     wallCanvas.style.pointerEvents = (wallMode||doorMode) ? 'auto' : 'none';
     measureCanvas.style.pointerEvents = measureMode ? 'auto' : 'none';
     templateCanvas.style.pointerEvents = templateMode ? 'auto' : 'none';
     tokenLayer.style.width = W+'px'; tokenLayer.style.height = H+'px';
-    mapCanvas.id='mapCanvas'; fogCanvas.id='fogCanvas'; fxCanvas.id='fxCanvas'; lightCanvas.id='lightCanvas'; wallCanvas.id='wallCanvas'; measureCanvas.id='measureCanvas'; templateCanvas.id='templateCanvas';
+    mapCanvas.id='mapCanvas'; fogCanvas.id='fogCanvas'; fogShapeCanvas.id='fogShapeCanvas'; fxCanvas.id='fxCanvas'; lightCanvas.id='lightCanvas'; wallCanvas.id='wallCanvas'; measureCanvas.id='measureCanvas'; templateCanvas.id='templateCanvas';
     stage.style.width = W+'px'; stage.style.height = H+'px';
-    stage.appendChild(mapCanvas); stage.appendChild(fogCanvas); stage.appendChild(fxCanvas); stage.appendChild(lightCanvas); stage.appendChild(wallCanvas); stage.appendChild(measureCanvas); stage.appendChild(templateCanvas); stage.appendChild(tokenLayer);
+    stage.appendChild(mapCanvas); stage.appendChild(fogCanvas); stage.appendChild(fogShapeCanvas); stage.appendChild(fxCanvas); stage.appendChild(lightCanvas); stage.appendChild(wallCanvas); stage.appendChild(measureCanvas); stage.appendChild(templateCanvas); stage.appendChild(tokenLayer);
     ctxMap = mapCanvas.getContext('2d');
     ctxFog = fogCanvas.getContext('2d');
+    ctxFogShape = fogShapeCanvas.getContext('2d');
     ctxFx = fxCanvas.getContext('2d');
     ctxLight = lightCanvas.getContext('2d');
     ctxWall = wallCanvas.getContext('2d');
@@ -1218,10 +1228,115 @@
 
   let fogShape = 'brush';
   let previewDiv = null;
+  let salasMode = false;
+  let fogShapesByMap = {};
+  let fogShapeSeq = 0;
+
+  function currentFogShapes(){
+    if(!currentMapKey) return [];
+    fogShapesByMap[currentMapKey] = fogShapesByMap[currentMapKey] || [];
+    return fogShapesByMap[currentMapKey];
+  }
+
+  function pointInShape(p, shape){
+    if(shape.type==='rect'){
+      return p.x>=shape.x && p.x<=shape.x+shape.w && p.y>=shape.y && p.y<=shape.y+shape.h;
+    }
+    const dx = p.x-shape.cx, dy = p.y-shape.cy;
+    return (dx*dx+dy*dy) <= shape.r*shape.r;
+  }
+
+  function paintShapeOnFog(shape, reveal){
+    ctxFog.globalCompositeOperation = reveal ? 'destination-out' : 'source-over';
+    ctxFog.fillStyle = 'rgba(5,5,8,0.95)';
+    ctxFog.beginPath();
+    if(shape.type==='rect'){ ctxFog.rect(shape.x, shape.y, shape.w, shape.h); }
+    else { ctxFog.arc(shape.cx, shape.cy, shape.r, 0, Math.PI*2); }
+    ctxFog.fill();
+  }
+
+  function toggleFogShape(id){
+    const shapes = currentFogShapes();
+    const shape = shapes.find(s=>s.id===id);
+    if(!shape) return;
+    pushFogUndo();
+    shape.revealed = !shape.revealed;
+    paintShapeOnFog(shape, shape.revealed);
+    renderFogShapesList();
+  }
+
+  function drawFogShapeOutlines(){
+    if(!ctxFogShape) return;
+    ctxFogShape.clearRect(0,0,W,H);
+    if(!salasMode) return;
+    const shapes = currentFogShapes();
+    ctxFogShape.font = 'bold 13px sans-serif';
+    shapes.forEach((s,i)=>{
+      ctxFogShape.strokeStyle = s.revealed ? 'rgba(140,210,150,0.9)' : 'rgba(199,154,75,0.9)';
+      ctxFogShape.lineWidth = 2;
+      ctxFogShape.setLineDash([6,4]);
+      ctxFogShape.beginPath();
+      if(s.type==='rect'){ ctxFogShape.rect(s.x, s.y, s.w, s.h); }
+      else { ctxFogShape.arc(s.cx, s.cy, s.r, 0, Math.PI*2); }
+      ctxFogShape.stroke();
+      ctxFogShape.setLineDash([]);
+      const cx = s.type==='rect' ? s.x+s.w/2 : s.cx;
+      const cy = s.type==='rect' ? s.y+s.h/2 : s.cy;
+      ctxFogShape.fillStyle = 'rgba(10,10,14,0.75)';
+      ctxFogShape.beginPath(); ctxFogShape.arc(cx, cy, 12, 0, Math.PI*2); ctxFogShape.fill();
+      ctxFogShape.fillStyle = '#f0d9a0';
+      ctxFogShape.textAlign = 'center'; ctxFogShape.textBaseline = 'middle';
+      ctxFogShape.fillText(String(i+1), cx, cy+1);
+    });
+  }
+
+  function renderFogShapesList(){
+    const list = document.getElementById('fogSalasList');
+    if(!list) return;
+    const shapes = currentFogShapes();
+    list.innerHTML = '';
+    if(shapes.length===0 && salasMode){
+      list.innerHTML = '<p class="hint" style="margin:0">Nenhuma sala salva ainda — desenhe um Retângulo ou Círculo no mapa pra criar uma.</p>';
+      return;
+    }
+    shapes.forEach((s,i)=>{
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.style.cssText = 'justify-content:space-between; background:var(--panel2); border-radius:4px; padding:4px 8px; margin:0;';
+      row.innerHTML =
+        '<span style="font-size:.75rem">'+(i+1)+'. Sala '+(i+1)+' ('+(s.type==='rect'?'▭':'⭕')+')</span>'+
+        '<div style="display:flex; align-items:center; gap:6px;">'+
+          '<div class="switch'+(s.revealed?' active':'')+'" data-toggle-shape="'+s.id+'"></div>'+
+          '<button data-del-shape="'+s.id+'" style="padding:3px 7px; font-size:.65rem;">🗑</button>'+
+        '</div>';
+      list.appendChild(row);
+    });
+    list.querySelectorAll('[data-toggle-shape]').forEach(el=>{
+      el.addEventListener('click', ()=> toggleFogShape(parseInt(el.dataset.toggleShape)));
+    });
+    list.querySelectorAll('[data-del-shape]').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        const id = parseInt(el.dataset.delShape);
+        const shapes = currentFogShapes();
+        const idx = shapes.findIndex(s=>s.id===id);
+        if(idx>=0) shapes.splice(idx,1);
+        drawFogShapeOutlines();
+        renderFogShapesList();
+      });
+    });
+  }
+
+  document.getElementById('btnSalasMode').addEventListener('click', function(){
+    salasMode = this.classList.toggle('active');
+    drawFogShapeOutlines();
+    renderFogShapesList();
+    showNotif(salasMode ? '📌 Modo Salas ativo — desenhe Retângulo/Círculo pra salvar, clique numa sala salva pra revelar/cobrir' : '📌 Modo Salas desligado — Retângulo/Círculo voltam a pintar direto');
+  });
 
   function attachFogEvents(){
     let drawing = false;
     let rectStart = null;
+    let circleCenter = null;
 
     function pos(e){
       const r = fogCanvas.getBoundingClientRect();
@@ -1241,14 +1356,34 @@
       ctxFog.fillStyle = 'rgba(5,5,8,0.95)';
       ctxFog.fillRect(x,y,w,h);
     }
+    function applyCircle(cx,cy,r){
+      ctxFog.globalCompositeOperation = (fogMode==='reveal') ? 'destination-out' : 'source-over';
+      ctxFog.fillStyle = 'rgba(5,5,8,0.95)';
+      ctxFog.beginPath(); ctxFog.arc(cx,cy,r,0,Math.PI*2); ctxFog.fill();
+    }
+    function registerShape(shape){
+      shape.id = fogShapeSeq++;
+      shape.revealed = false;
+      currentFogShapes().push(shape);
+      drawFogShapeOutlines();
+      renderFogShapesList();
+      showNotif('📌 Sala salva — clique nela na lista (ou no mapa) pra revelar quando os jogadores entrarem');
+    }
     function startPreview(p){
       previewDiv = document.createElement('div');
-      previewDiv.style.cssText = 'position:absolute;border:2px dashed var(--gold);background:rgba(199,154,75,0.15);pointer-events:none;';
+      const isCircle = fogShape==='circle';
+      previewDiv.style.cssText = 'position:absolute;border:2px dashed var(--gold);background:rgba(199,154,75,0.15);pointer-events:none;'+(isCircle?'border-radius:50%;':'');
       previewDiv.style.left = p.x+'px'; previewDiv.style.top = p.y+'px';
       previewDiv.style.width = '0px'; previewDiv.style.height = '0px';
       stage.appendChild(previewDiv);
     }
     function updatePreview(start, cur){
+      if(fogShape==='circle'){
+        const r = Math.hypot(cur.x-start.x, cur.y-start.y);
+        previewDiv.style.left = (start.x-r)+'px'; previewDiv.style.top = (start.y-r)+'px';
+        previewDiv.style.width = (r*2)+'px'; previewDiv.style.height = (r*2)+'px';
+        return;
+      }
       const x = Math.min(start.x, cur.x), y = Math.min(start.y, cur.y);
       const w = Math.abs(cur.x-start.x), h = Math.abs(cur.y-start.y);
       previewDiv.style.left = x+'px'; previewDiv.style.top = y+'px';
@@ -1269,10 +1404,19 @@
         return;
       }
       if(!fogOn) return;
+      const p = pos(e);
+
+      // Modo Salas: clicar numa forma ja salva alterna ela, em vez de comecar a desenhar
+      if(salasMode){
+        const shapes = currentFogShapes();
+        const hit = [...shapes].reverse().find(s=> pointInShape(p, s));
+        if(hit){ toggleFogShape(hit.id); return; }
+      }
+
       pushFogUndo();
       drawing = true;
-      const p = pos(e);
       if(fogShape==='rect'){ rectStart = p; startPreview(p); }
+      else if(fogShape==='circle'){ circleCenter = p; startPreview(p); }
       else paintBrush(p);
     }
     function onMove(e){
@@ -1288,15 +1432,28 @@
       if(!drawing || !fogOn) return;
       const p = pos(e);
       if(fogShape==='rect'){ if(previewDiv) updatePreview(rectStart, p); }
+      else if(fogShape==='circle'){ if(previewDiv) updatePreview(circleCenter, p); }
       else paintBrush(p);
     }
-    function onUp(){
+    function onUp(e){
       if(mapEditMode){ mapDragging = false; return; }
       if(drawing && fogShape==='rect' && rectStart && previewDiv){
         const x = parseFloat(previewDiv.style.left), y = parseFloat(previewDiv.style.top);
         const w = parseFloat(previewDiv.style.width), h = parseFloat(previewDiv.style.height);
-        if(w>2 && h>2) applyRect(x,y,w,h);
+        if(w>2 && h>2){
+          if(salasMode) registerShape({ type:'rect', x, y, w, h });
+          else applyRect(x,y,w,h);
+        }
         previewDiv.remove(); previewDiv = null; rectStart = null;
+      }
+      if(drawing && fogShape==='circle' && circleCenter && previewDiv){
+        const p = pos(e && e.changedTouches ? e.changedTouches[0] : (e||{}));
+        const r = Math.hypot((p.x||circleCenter.x)-circleCenter.x, (p.y||circleCenter.y)-circleCenter.y);
+        if(r>2){
+          if(salasMode) registerShape({ type:'circle', cx:circleCenter.x, cy:circleCenter.y, r });
+          else applyCircle(circleCenter.x, circleCenter.y, r);
+        }
+        previewDiv.remove(); previewDiv = null; circleCenter = null;
       }
       drawing = false;
     }
@@ -1313,12 +1470,20 @@
     fogShape = 'brush';
     this.classList.add('active');
     document.getElementById('shapeRect').classList.remove('active');
+    document.getElementById('shapeCircle').classList.remove('active');
     document.getElementById('brushSize').parentElement.style.display = '';
   });
   document.getElementById('shapeRect').addEventListener('click', function(){
     fogShape = 'rect';
     this.classList.add('active');
     document.getElementById('shapeBrush').classList.remove('active');
+    document.getElementById('shapeCircle').classList.remove('active');
+  });
+  document.getElementById('shapeCircle').addEventListener('click', function(){
+    fogShape = 'circle';
+    this.classList.add('active');
+    document.getElementById('shapeBrush').classList.remove('active');
+    document.getElementById('shapeRect').classList.remove('active');
   });
 
   function loadImageFile(file, cb){
@@ -1502,6 +1667,8 @@
     applyMapVisibility();
     updateStatus();
     renderMapList();
+    drawFogShapeOutlines();
+    renderFogShapesList();
   }
 
   document.getElementById('gridCols').addEventListener('input', drawMap);
@@ -2509,6 +2676,7 @@
       fog: (ctxFog && mapCanvas) ? fogCanvas.toDataURL() : null,
       walls: wallsByMap,
       doors: doorsByMap,
+      fogShapes: fogShapesByMap,
       playerImages,
       tokens,
       documents: docsData,
@@ -2558,6 +2726,9 @@
 
     wallsByMap = data.walls || {};
     doorsByMap = data.doors || {};
+    fogShapesByMap = data.fogShapes || {};
+    fogShapeSeq = 0;
+    Object.values(fogShapesByMap).forEach(arr=> (arr||[]).forEach(s=>{ if(s.id>=fogShapeSeq) fogShapeSeq = s.id+1; }));
 
     maps = [];
     mapSeq = 0;
@@ -2585,6 +2756,8 @@
     }
     walls = wallsByMap[currentMapKey] || [];
     doors = doorsByMap[currentMapKey] || [];
+    drawFogShapeOutlines();
+    renderFogShapesList();
 
     if(data.grid){
       document.getElementById('gridCols').value = data.grid.cols || 20;
