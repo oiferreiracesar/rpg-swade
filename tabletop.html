@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tabuleiro Virtual</title>
+<title>Mente Plena — Tabuleiro Virtual</title>
 <style>
   :root{
     --bg:#0c0d10;
@@ -179,6 +179,11 @@
   }
   .token:active{ cursor:grabbing; }
   .token.player.lit{ box-shadow: 0 0 12px 4px rgba(255,214,140,.85); }
+  .token[data-player-hidden="true"]{ outline: 2px dashed rgba(224,90,90,.85); outline-offset: 3px; }
+  .token[data-player-hidden="true"]::after{
+    content:"🚫👁"; position:absolute; bottom:-9px; right:-6px; font-size:9px;
+    background:#1a1a22; border-radius:50%; padding:1px 2px; line-height:1;
+  }
 
   .tokenStatus{
     position:absolute; top:-8px; left:50%; transform:translateX(-50%);
@@ -564,7 +569,7 @@
     <div class="block" style="width:300px">
       <h2>Neblina de guerra</h2>
       <div class="row">
-        <button id="btnFogToggle" class="active">Neblina: Ativa</button>
+        <button id="btnFogToggle">Neblina: Desativada</button>
         <button id="fogModeReveal" class="active">✏️ Revelar</button>
         <button id="fogModeCover">🖌️ Cobrir</button>
       </div>
@@ -872,6 +877,7 @@
       <h2>📺 Transmissão — segunda tela</h2>
       <button id="btnPlayerView" class="wide">Abrir tela do jogador</button>
       <button id="btnPlayerFullscreen" class="wide">⛶ Tela cheia na tela do jogador</button>
+      <button id="btnGmFullscreen" class="wide">⛶ Tela cheia aqui (na minha tela)</button>
       <p class="hint">Abre uma janela só com o mapa (sem estes controles). Arraste-a para o segundo monitor ou TV. O botão "Tela cheia" tenta ativar direto daqui — se o navegador bloquear, tem um botão ⛶ discreto no canto da própria janela do jogador também. Continue controlando tudo por aqui — a outra tela se atualiza sozinha.</p>
     </div>
 
@@ -1125,7 +1131,7 @@
     const scale = Math.max(W/iw, H/ih);
     return { scale, offsetX: (W-iw*scale)/2, offsetY: (H-ih*scale)/2 };
   }
-  let gridOn = true, fogOn = true, snapToGrid = false;
+  let gridOn = true, fogOn = false, snapToGrid = false;
   let fogMode = 'reveal';
   let brushSize = 45;
   let zoom = 1;
@@ -1943,6 +1949,7 @@
     el.dataset.imgDown = opts.imgDown || '';
     if(color) el.style.borderColor = color;
     if(cat==='player') el.dataset.lightOn = opts.lightOn!=null?opts.lightOn:'false';
+    el.dataset.playerHidden = opts.playerHidden!=null ? opts.playerHidden : 'true';
     el.innerHTML = imgSrc
       ? '<div class="tokenVisual"><img class="tokImg" src="'+imgSrc+'" style="width:100%;height:100%;object-fit:contain;pointer-events:none"></div><span class="lbl">'+label+'</span>'
       : '<div class="tokenVisual"><span class="tokenEmoji" style="font-size:1.25rem">'+emoji+'</span></div><span class="lbl">'+label+'</span>';
@@ -2112,7 +2119,10 @@
     const f = parseInt(el.dataset.fatigue||'0');
     const b = parseInt(el.dataset.bennies||'3');
     const shaken = el.dataset.shaken === 'true';
+    const playerHidden = el.dataset.playerHidden === 'true';
     let html =
+      '<div class="statusRow"><span>'+(playerHidden?'🚫👁 Oculto dos jogadores':'👁️ Visível aos jogadores')+'</span>'+
+      '<button data-act="toggle-player-visible" class="'+(playerHidden?'':'on')+'" style="width:auto;padding:2px 8px;">'+(playerHidden?'Revelar':'Ocultar')+'</button></div>'+
       '<div class="statusRow"><span>🩸 Ferimentos</span><button data-act="w-">−</button><b>'+w+'/3</b><button data-act="w+">+</button></div>'+
       '<div class="statusRow"><span>💤 Fadiga</span><button data-act="f-">−</button><b>'+f+'/2</b><button data-act="f+">+</button></div>'+
       '<div class="statusRow"><span>🪙 Benes</span><button data-act="b-">−</button><b>'+b+'</b><button data-act="b+">+</button></div>'+
@@ -2140,6 +2150,10 @@
         if(act==='b-') adjustBennies(el,-1);
         if(act==='b+') adjustBennies(el,1);
         if(act==='shaken') toggleShaken(el);
+        if(act==='toggle-player-visible'){
+          el.dataset.playerHidden = (el.dataset.playerHidden==='true') ? 'false' : 'true';
+          showNotif(el.dataset.playerHidden==='true' ? '🚫👁 Token oculto da tela do jogador' : '👁️ Token visível na tela do jogador');
+        }
         renderTokenStatus(el);
         renderStatusPanel();
       });
@@ -2446,10 +2460,23 @@
     }
   });
 
+  let frameCanvas = null, frameCtx = null;
+  let tokenCache = [];
+  function refreshTokenCache(){
+    tokenCache = Array.prototype.slice.call(document.querySelectorAll('.token'));
+  }
+  setInterval(refreshTokenCache, 250);
+  refreshTokenCache();
+
   function compositeFrame(){
-    const out = document.createElement('canvas');
-    out.width = W; out.height = H;
-    const octx = out.getContext('2d');
+    if(!frameCanvas){
+      frameCanvas = document.createElement('canvas');
+      frameCtx = frameCanvas.getContext('2d');
+    }
+    if(frameCanvas.width!==W || frameCanvas.height!==H){ frameCanvas.width=W; frameCanvas.height=H; }
+    const out = frameCanvas;
+    const octx = frameCtx;
+    octx.clearRect(0,0,W,H);
     octx.save();
     octx.translate(shakeDX, shakeDY);
     if(mapCanvas) octx.drawImage(mapCanvas,0,0);
@@ -2458,8 +2485,10 @@
     if(lightCanvas) octx.drawImage(lightCanvas,0,0);
     if(measureCanvas) octx.drawImage(measureCanvas,0,0);
     if(templateCanvas) octx.drawImage(templateCanvas,0,0);
-    document.querySelectorAll('.token').forEach(t=>{
+    tokenCache.forEach(t=>{
+      if(!t.isConnected) return;
       if(t.classList.contains('cat-hidden') || t.classList.contains('map-hidden')) return;
+      if(t.dataset.playerHidden === 'true') return;
       const left = parseFloat(t.style.left), top = parseFloat(t.style.top);
       const scale = parseFloat(t.dataset.scale||'1');
       const rot = (parseFloat(t.dataset.rot||'0')) * Math.PI/180;
@@ -2662,6 +2691,7 @@
         mapkey: t.dataset.mapkey,
         borderColor: t.style.borderColor,
         hidden: t.classList.contains('cat-hidden'),
+        playerHidden: t.dataset.playerHidden,
         imgSrc: t.dataset.imgUp || (img ? img.src : null),
         imgDown: t.dataset.imgDown || null,
         emoji: emojiEl ? emojiEl.textContent : null,
@@ -2788,6 +2818,7 @@
       addToken(t.emoji, t.label, t.cat, t.borderColor, t.imgSrc, {
         left: t.left, top: t.top, scale: t.scale, rot: t.rot, flip: t.flip,
         lightOn: t.lightOn, wounds: t.wounds, shaken: t.shaken, hidden: t.hidden,
+        playerHidden: t.playerHidden,
         fatigue: t.fatigue, bennies: t.bennies,
         distraido: t.distraido, vulneravel: t.vulneravel,
         atordoado: t.atordoado, enredado: t.enredado,
@@ -2869,7 +2900,7 @@
       alert('O navegador bloqueou a nova janela. Permita pop-ups para esta página (ou tente no Chrome) e clique de novo.');
       return;
     }
-    playerWin.document.write('<!DOCTYPE html><html><head><title>Mesa — Tela do jogador</title><style>html,body{margin:0;height:100%;background:#000;overflow:auto;}body{display:flex;align-items:flex-start;justify-content:center;min-height:100%;}canvas{max-width:100%;max-height:100vh;display:block;}#fsBtn{position:fixed;bottom:12px;right:12px;z-index:999;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);color:#fff;font-size:17px;cursor:pointer;opacity:.45;transition:opacity .15s;}#fsBtn:hover{opacity:1;}</style></head><body><canvas id="pcanvas"></canvas><button id="fsBtn" title="Tela cheia">⛶</button><script>document.getElementById("fsBtn").addEventListener("click",function(){if(!document.fullscreenElement){document.documentElement.requestFullscreen().catch(function(){});}else{document.exitFullscreen();}});<\/script></body></html>');
+    playerWin.document.write('<!DOCTYPE html><html><head><title>Mesa — Tela do jogador</title><style>html,body{margin:0;height:100%;width:100%;background:#000;overflow:hidden;}body{display:block;}canvas{width:100vw;height:100vh;display:block;object-fit:cover;}#fsBtn{position:fixed;bottom:12px;right:12px;z-index:999;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);color:#fff;font-size:17px;cursor:pointer;opacity:.45;transition:opacity .15s;}#fsBtn:hover{opacity:1;}</style></head><body><canvas id="pcanvas"></canvas><button id="fsBtn" title="Tela cheia">⛶</button><script>document.getElementById("fsBtn").addEventListener("click",function(){if(!document.fullscreenElement){document.documentElement.requestFullscreen().catch(function(){});}else{document.exitFullscreen();}});document.documentElement.requestFullscreen().catch(function(){});<\/script></body></html>');
     playerWin.document.close();
     if(currentPdf) showPdfOnPlayer(currentPdf.src);
     document.getElementById('btnPlayerView').textContent = 'Tela do jogador aberta — clique para focar';
@@ -2890,8 +2921,6 @@
         const pcanvas = playerWin.document.getElementById('pcanvas');
         if(pcanvas){
           if(pcanvas.width!==W || pcanvas.height!==H){ pcanvas.width=W; pcanvas.height=H; }
-          pcanvas.style.transformOrigin = 'top center';
-          pcanvas.style.transform = 'scale('+zoom+')';
           const pctx = pcanvas.getContext('2d');
           const gmVideo = document.getElementById('gmVideoPreview');
           if(videoShowing && currentVideoRec && gmVideo && gmVideo.readyState >= 2){
@@ -2914,7 +2943,7 @@
         }
       } catch(err){ /* window may be mid-navigation, skip this frame */ }
     }
-    setTimeout(syncPlayerLoop, 80);
+    setTimeout(syncPlayerLoop, 50);
   }
 
   document.getElementById('btnPlayerView').addEventListener('click', openPlayerWindow);
@@ -4200,6 +4229,7 @@
   let lanternRadius = 110;
   let lanternAnimRunning = false;
 
+  let lastLanternTick = 0;
   function stepLantern(){
     if(!ctxLight){ lanternAnimRunning = false; return; }
     if(!lanternOn){
@@ -4207,11 +4237,17 @@
       lanternAnimRunning = false;
       return;
     }
+    const now = performance.now();
+    if(now - lastLanternTick < 33){
+      requestAnimationFrame(stepLantern);
+      return;
+    }
+    lastLanternTick = now;
     ctxLight.clearRect(0,0,W,H);
     ctxLight.fillStyle = 'rgba(2,2,4,0.93)';
     ctxLight.fillRect(0,0,W,H);
     ctxLight.globalCompositeOperation = 'destination-out';
-    document.querySelectorAll('.token.player').forEach(t=>{
+    tokenCache.filter(t=>t.isConnected && t.classList.contains('player')).forEach(t=>{
       if(t.classList.contains('cat-hidden') || t.classList.contains('map-hidden')) return;
       if(t.dataset.lightOn !== 'true') return;
       const left = parseFloat(t.style.left), top = parseFloat(t.style.top);
@@ -4259,6 +4295,28 @@
   document.getElementById('zoomIn').addEventListener('click', ()=>{ zoom=Math.min(2,zoom+.1); applyZoom(); });
   document.getElementById('zoomOut').addEventListener('click', ()=>{ zoom=Math.max(.4,zoom-.1); applyZoom(); });
   document.getElementById('zoomReset').addEventListener('click', ()=>{ zoom=1; applyZoom(); });
+
+  // ---------- Tela cheia (GM) ----------
+  let zoomBeforeFullscreen = null;
+  document.getElementById('btnGmFullscreen').addEventListener('click', ()=>{
+    if(!mapCanvas){ alert('Carregue um mapa primeiro.'); return; }
+    if(!document.fullscreenElement){
+      mainEl.requestFullscreen().catch(()=> showNotif('⚠️ O navegador bloqueou a tela cheia.'));
+    } else {
+      document.exitFullscreen();
+    }
+  });
+  document.addEventListener('fullscreenchange', ()=>{
+    if(document.fullscreenElement === mainEl){
+      zoomBeforeFullscreen = zoom;
+      zoom = Math.max(window.innerWidth / W, window.innerHeight / H);
+      applyZoom();
+    } else if(zoomBeforeFullscreen !== null){
+      zoom = zoomBeforeFullscreen;
+      zoomBeforeFullscreen = null;
+      applyZoom();
+    }
+  });
 
   // ---------- Modo mover tela (pan) ----------
   let panMode = false;
