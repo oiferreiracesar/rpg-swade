@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RPG SWADE — Tabuleiro Virtual</title>
+<title>Mente Plena — Tabuleiro Virtual</title>
 <style>
   :root{
     --bg:#0c0d10;
@@ -1232,6 +1232,26 @@
     }
   }
 
+  let fogDataByMap = {};
+  function saveFogForCurrentMap(){
+    if(!ctxFog || !currentMapKey) return;
+    fogDataByMap[currentMapKey] = fogCanvas.toDataURL();
+  }
+  function loadFogForMap(id){
+    if(!ctxFog) return;
+    const data = fogDataByMap[id];
+    if(data){
+      const img = new Image();
+      img.onload = () => {
+        ctxFog.clearRect(0,0,W,H);
+        ctxFog.drawImage(img,0,0);
+      };
+      img.src = data;
+    } else {
+      initFog();
+    }
+  }
+
   let fogShape = 'brush';
   let previewDiv = null;
   let salasMode = false;
@@ -1650,6 +1670,7 @@
   function showMapById(id){
     const m = maps.find(x=>x.id===id);
     if(!m) return;
+    saveFogForCurrentMap();
     maps.forEach(other=>{
       if(other.isVideo && other.id!==id && other.img && !other.img.paused) other.img.pause();
     });
@@ -1675,6 +1696,7 @@
     renderMapList();
     drawFogShapeOutlines();
     renderFogShapesList();
+    loadFogForMap(id);
   }
 
   document.getElementById('gridCols').addEventListener('input', drawMap);
@@ -2704,6 +2726,7 @@
       currentMapKey: currentMapId,
       maps: maps.map(m=>({ id:m.id, name:m.name, src: m.isVideo ? null : m.src, isVideo: !!m.isVideo, isGif: !!m.isGif })),
       fog: (ctxFog && mapCanvas) ? fogCanvas.toDataURL() : null,
+      fogByMap: (()=>{ saveFogForCurrentMap(); return fogDataByMap; })(),
       walls: wallsByMap,
       doors: doorsByMap,
       fogShapes: fogShapesByMap,
@@ -2802,7 +2825,11 @@
     renderDoors();
     renderMapList();
 
-    if(data.fog){
+    fogDataByMap = data.fogByMap || {};
+
+    if(fogDataByMap[currentMapKey]){
+      loadFogForMap(currentMapKey);
+    } else if(data.fog){
       const fogImg = await loadImgAsync(data.fog);
       if(fogImg){ ctxFog.clearRect(0,0,W,H); ctxFog.drawImage(fogImg,0,0); }
       else initFog();
