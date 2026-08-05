@@ -190,8 +190,46 @@
     letter-spacing:1px;
     color:var(--ink-faint);
     text-transform:uppercase;
+    margin-bottom:12px;
   }
   .pad.playing .pad-state{ color:var(--amber); }
+  .pad-controls{
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .icon-btn{
+    flex-shrink:0;
+    width:26px; height:26px;
+    border-radius:2px;
+    border:1px solid var(--line);
+    background:var(--panel);
+    color:var(--ink-faint);
+    font-size:11px;
+    line-height:1;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .icon-btn:hover{ border-color:var(--amber); color:var(--ink); }
+  .play-btn.is-playing{
+    background:var(--amber-dim);
+    border-color:var(--amber);
+    color:var(--amber);
+  }
+  .loop-btn{
+    font-size:13px;
+  }
+  .loop-btn.active{
+    background:var(--amber-dim);
+    border-color:var(--amber);
+    color:var(--amber);
+  }
+  .vol-slider{
+    flex:1;
+    width:auto !important;
+  }
   .del{
     position:absolute;
     top:8px; right:8px;
@@ -235,7 +273,7 @@
       <div class="tag">soundboard de áudio — youtube</div>
     </div>
     <div class="master">
-      <span>master</span>
+      <span>ajustar todos</span>
       <input type="range" id="master-vol" min="0" max="100" value="80">
     </div>
   </header>
@@ -284,7 +322,7 @@
 
     sounds.forEach(function(s, idx){
       var isPlaying = players[s.id] && players[s.id]._playing;
-      var pad = document.createElement('button');
+      var pad = document.createElement('div');
       pad.className = 'pad' + (isPlaying ? ' playing' : '');
       pad.innerHTML =
         '<div class="pad-top">' +
@@ -292,16 +330,41 @@
           '<span class="led"></span>' +
         '</div>' +
         '<div class="pad-name">' + escapeHtml(s.name) + '</div>' +
-        '<div class="pad-state">' + (isPlaying ? 'tocando' : 'parado') + '</div>' +
-        '<button class="del" aria-label="remover" data-id="' + s.id + '">×</button>';
+        '<div class="pad-state">' + (isPlaying ? 'tocando' : 'parado') + (s.loop ? ' · loop' : '') + '</div>' +
+        '<div class="pad-controls">' +
+          '<button class="icon-btn play-btn ctrl' + (isPlaying ? ' is-playing' : '') + '" aria-label="' + (isPlaying ? 'pausar' : 'tocar') + '" data-id="' + s.id + '" title="play/pause">' + (isPlaying ? '&#10074;&#10074;' : '&#9654;') + '</button>' +
+          '<button class="icon-btn stop-btn ctrl" aria-label="parar" data-id="' + s.id + '" title="stop (volta ao início)">&#9632;</button>' +
+          '<button class="icon-btn loop-btn ctrl' + (s.loop ? ' active' : '') + '" aria-label="repetir" data-id="' + s.id + '" title="repetir">&#8635;</button>' +
+          '<input type="range" class="vol-slider ctrl" min="0" max="100" value="' + s.volume + '" data-id="' + s.id + '">' +
+        '</div>' +
+        '<button class="del ctrl" aria-label="remover" data-id="' + s.id + '">×</button>';
 
       pad.addEventListener('click', function(e){
-        if(e.target.classList.contains('del')) return;
+        if(e.target.closest('.ctrl')) return;
         togglePad(s.id);
       });
       pad.querySelector('.del').addEventListener('click', function(e){
         e.stopPropagation();
         removeSound(s.id);
+      });
+      pad.querySelector('.play-btn').addEventListener('click', function(e){
+        e.stopPropagation();
+        togglePad(s.id);
+      });
+      pad.querySelector('.stop-btn').addEventListener('click', function(e){
+        e.stopPropagation();
+        stopPad(s.id);
+      });
+      pad.querySelector('.loop-btn').addEventListener('click', function(e){
+        e.stopPropagation();
+        toggleLoop(s.id);
+      });
+      pad.querySelector('.vol-slider').addEventListener('input', function(e){
+        e.stopPropagation();
+        setPadVolume(s.id, Number(e.target.value));
+      });
+      pad.querySelector('.vol-slider').addEventListener('click', function(e){
+        e.stopPropagation();
       });
       grid.appendChild(pad);
     });
@@ -320,7 +383,8 @@
         if(existing._playing){
           existing.pauseVideo();
         } else {
-          existing.setVolume(Number(document.getElementById('master-vol').value));
+          var sound = sounds.find(function(s){ return s.id === id; });
+          existing.setVolume(sound.volume);
           existing.playVideo();
         }
         return;
@@ -345,16 +409,50 @@
       playerVars: { autoplay: 1, controls: 0, disablekb: 1 },
       events: {
         onReady: function(e){
-          e.target.setVolume(Number(document.getElementById('master-vol').value));
+          e.target.setVolume(sound.volume);
           e.target.playVideo();
         },
         onStateChange: function(e){
+          if(e.data === YT.PlayerState.ENDED){
+            var s = sounds.find(function(x){ return x.id === id; });
+            if(s && s.loop){
+              e.target.seekTo(0);
+              e.target.playVideo();
+              return;
+            }
+            player._playing = false;
+            renderGrid();
+            return;
+          }
           player._playing = (e.data === YT.PlayerState.PLAYING);
           renderGrid();
         }
       }
     });
     players[id] = player;
+  }
+
+  function stopPad(id){
+    var player = players[id];
+    if(!player) return;
+    player.pauseVideo();
+    player.seekTo(0);
+    player._playing = false;
+    renderGrid();
+  }
+
+  function toggleLoop(id){
+    var s = sounds.find(function(x){ return x.id === id; });
+    if(!s) return;
+    s.loop = !s.loop;
+    renderGrid();
+  }
+
+  function setPadVolume(id, vol){
+    var s = sounds.find(function(x){ return x.id === id; });
+    if(!s) return;
+    s.volume = vol;
+    if(players[id]) players[id].setVolume(vol);
   }
 
   function removeSound(id){
@@ -379,7 +477,8 @@
     errorMsg.style.display = 'none';
 
     var name = nameInput.value.trim() || 'som ' + (sounds.length + 1);
-    sounds.push({ id: 'snd-' + Date.now() + '-' + Math.floor(Math.random()*1000), name: name, videoId: videoId });
+    var startVol = Number(document.getElementById('master-vol').value);
+    sounds.push({ id: 'snd-' + Date.now() + '-' + Math.floor(Math.random()*1000), name: name, videoId: videoId, volume: startVol, loop: false });
     urlInput.value = '';
     nameInput.value = '';
     renderGrid();
@@ -387,7 +486,9 @@
 
   document.getElementById('master-vol').addEventListener('input', function(){
     var v = Number(this.value);
+    sounds.forEach(function(s){ s.volume = v; });
     Object.keys(players).forEach(function(id){ players[id].setVolume(v); });
+    renderGrid();
   });
 
   renderGrid();
