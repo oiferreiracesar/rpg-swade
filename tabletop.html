@@ -485,7 +485,6 @@
     .ribbonPanel .block{ width:200px; }
   }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@2.13.216/legacy/build/pdf.min.js"></script>
 </head>
 <body>
 
@@ -3062,10 +3061,22 @@
   let currentDocument = null;
   let currentPdf = null;
 
-  if(window.pdfjsLib){
-    try{
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.13.216/legacy/build/pdf.worker.min.js';
-    } catch(err){}
+  let pdfJsLoadPromise = null;
+  function ensurePdfJsLoaded(){
+    if(pdfJsLoadPromise) return pdfJsLoadPromise;
+    pdfJsLoadPromise = new Promise((resolve, reject)=>{
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.13.216/legacy/build/pdf.min.js';
+      script.onload = ()=>{
+        try{
+          pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.13.216/legacy/build/pdf.worker.min.js';
+        } catch(err){}
+        resolve(window.pdfjsLib);
+      };
+      script.onerror = ()=>{ showNotif('⚠️ Não consegui carregar o leitor de PDF (sem internet?).'); reject(); };
+      document.head.appendChild(script);
+    });
+    return pdfJsLoadPromise;
   }
 
   function addDocument(src, name, silent){
@@ -3075,12 +3086,14 @@
       rec.img = new Image();
       if(src.indexOf('data:')!==0) rec.img.crossOrigin = 'anonymous';
       rec.img.src = src;
-    } else if(window.pdfjsLib){
+    } else {
+      ensurePdfJsLoaded().then(()=>{
       pdfjsLib.getDocument({url:src}).promise.then(pdf=>{
         rec.numPages = pdf.numPages;
         renderDocList();
         if(currentPdf===rec) updatePdfPageDisplay();
       }).catch(()=>{ rec.numPages = -1; renderDocList(); });
+      });
     }
     documents.push(rec);
     renderDocList();
@@ -3609,12 +3622,15 @@
 
   // ---------- Soundboard (Trilha Sonora + Efeito Sonoro, via YouTube) ----------
   let ytApiReady = false;
+  let ytApiLoadStarted = false;
   let ytPendingActions = [];
-  (function loadYtApi(){
+  function ensureYtApiLoaded(){
+    if(ytApiLoadStarted) return;
+    ytApiLoadStarted = true;
     const tag = document.createElement('script');
     tag.src = 'https://www.youtube.com/iframe_api';
     document.body.appendChild(tag);
-  })();
+  }
   window.onYouTubeIframeAPIReady = function(){
     ytApiReady = true;
     ytPendingActions.forEach(fn=>fn());
@@ -3704,7 +3720,7 @@
         createPlayer(id);
       };
       const sound = state.sounds.find(s=>s.id===id);
-      if(sound && sound.type==='youtube' && !ytApiReady){ ytPendingActions.push(run); return; }
+      if(sound && sound.type==='youtube' && !ytApiReady){ ensureYtApiLoaded(); ytPendingActions.push(run); return; }
       run();
     }
 
