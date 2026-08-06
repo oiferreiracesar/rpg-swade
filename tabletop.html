@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RPG SWADE — Tabuleiro Virtual</title>
+<title>Mente Plena — Tabuleiro Virtual</title>
 <style>
   :root{
     --bg:#0c0d10;
@@ -749,23 +749,48 @@
       <p class="hint">Piscar branco = estroboscópio/epilético. Piscar preto = luz falhando/apagão. Tremor sacode o mapa e a tela do jogador.</p>
     </div>
 
-    <div class="block" style="width:280px">
-      <h2>🔊 Soundboard de Efeitos</h2>
-      <p class="hint">Sons curtos (trovão, porta rangendo, grito) — clique ▶️ pra tocar uma vez, sem interromper nada que já esteja tocando.</p>
+    <div class="block" style="width:300px">
+      <h2>🎵 Trilha Sonora</h2>
+      <p class="hint">Música de fundo — tocar uma nova trilha pausa a anterior automaticamente. Loop ligado por padrão. Aceita YouTube, link direto (mp3, wav, ogg) ou arquivo do computador.</p>
       <div class="row">
-        <label class="fileBtn"><button class="wide">+ Adicionar som(s)</button>
-          <input type="file" id="sfxInput" accept="audio/*" multiple>
+        <input type="text" id="trilhaUrlInput" placeholder="link do YouTube ou de áudio (mp3, wav...)" style="flex:1">
+      </div>
+      <div class="row">
+        <input type="text" id="trilhaNameInput" placeholder="nome da trilha" style="flex:1">
+        <button id="btnTrilhaAdd">+ Add</button>
+      </div>
+      <div class="row">
+        <label class="fileBtn"><button class="wide">+ Subir arquivo(s)</button>
+          <input type="file" id="trilhaFileInput" accept="audio/*" multiple>
         </label>
       </div>
+      <div class="error" id="trilhaError" style="color:#e05a5a; font-size:.68rem; display:none;">Cole um link ou escolha um arquivo de áudio.</div>
+      <div id="trilhaGrid" style="display:flex; flex-direction:column; gap:6px; max-height:280px; overflow-y:auto;"></div>
+      <div id="trilhaEmpty" class="hint">Nenhuma trilha cadastrada ainda.</div>
+    </div>
+
+    <div class="block" style="width:300px">
+      <h2>🔊 Efeito Sonoro</h2>
+      <p class="hint">Sons curtos (trovão, porta, grito) — vários podem tocar ao mesmo tempo, sem interromper um ao outro. Aceita YouTube, link direto (mp3, wav, ogg) ou arquivo do computador.</p>
       <div class="row">
-        <input type="text" id="sfxUrlInput" placeholder="ou cole um link (mp3, wav...)" style="flex:1">
-        <button id="btnSfxAddUrl">+ Link</button>
+        <input type="text" id="efeitoUrlInput" placeholder="link do YouTube ou de áudio (mp3, wav...)" style="flex:1">
       </div>
-      <div id="sfxList"></div>
       <div class="row">
-        <button id="btnSfxStopAll" class="wide danger">⏹ Parar todos os sons</button>
+        <input type="text" id="efeitoNameInput" placeholder="nome do efeito" style="flex:1">
+        <button id="btnEfeitoAdd">+ Add</button>
       </div>
-      <p class="hint">⚠️ Sons não ficam salvos na Sessão (arquivo grande demais) — precisa subir de novo se recarregar a página.</p>
+      <div class="row">
+        <label class="fileBtn"><button class="wide">+ Subir arquivo(s)</button>
+          <input type="file" id="efeitoFileInput" accept="audio/*" multiple>
+        </label>
+      </div>
+      <div class="error" id="efeitoError" style="color:#e05a5a; font-size:.68rem; display:none;">Cole um link ou escolha um arquivo de áudio.</div>
+      <div id="efeitoGrid" style="display:flex; flex-direction:column; gap:6px; max-height:240px; overflow-y:auto;"></div>
+      <div id="efeitoEmpty" class="hint">Nenhum efeito cadastrado ainda.</div>
+      <div class="row">
+        <button id="btnEfeitoStopAll" class="wide danger">⏹ Parar todos os efeitos</button>
+      </div>
+      <p class="hint">⚠️ Sons enviados por arquivo não ficam salvos na Sessão (arquivo grande demais) — precisam ser subidos de novo se a página recarregar. Links (YouTube ou direto) salvam normalmente.</p>
     </div>
 
   </div>
@@ -1096,6 +1121,7 @@
       </div>
     </div>
   </main>
+  <div id="ytHiddenPlayers" style="position:absolute; width:0; height:0; overflow:hidden;"></div>
 </div>
 
 <div class="multiSelectBar" id="multiSelectBar" style="display:none;">
@@ -2749,6 +2775,8 @@
       maps: maps.map(m=>({ id:m.id, name:m.name, src: m.isVideo ? null : m.src, isVideo: !!m.isVideo, isGif: !!m.isGif })),
       fog: (ctxFog && mapCanvas) ? fogCanvas.toDataURL() : null,
       fogByMap: (()=>{ saveFogForCurrentMap(); return fogDataByMap; })(),
+      trilhaSonora: trilhaSoundboard.sounds.filter(s=>s.type!=='file').map(s=>({id:s.id, name:s.name, type:s.type, videoId:s.videoId, src:s.src, volume:s.volume, loop:s.loop})),
+      efeitoSonoro: efeitoSoundboard.sounds.filter(s=>s.type!=='file').map(s=>({id:s.id, name:s.name, type:s.type, videoId:s.videoId, src:s.src, volume:s.volume, loop:s.loop})),
       walls: wallsByMap,
       doors: doorsByMap,
       fogShapes: fogShapesByMap,
@@ -2848,6 +2876,17 @@
     renderMapList();
 
     fogDataByMap = data.fogByMap || {};
+
+    if(data.trilhaSonora){
+      trilhaSoundboard.sounds = data.trilhaSonora.map(s=>({...s}));
+      trilhaSoundboard.seq = trilhaSoundboard.sounds.length;
+      trilhaSoundboard.render();
+    }
+    if(data.efeitoSonoro){
+      efeitoSoundboard.sounds = data.efeitoSonoro.map(s=>({...s}));
+      efeitoSoundboard.seq = efeitoSoundboard.sounds.length;
+      efeitoSoundboard.render();
+    }
 
     if(fogDataByMap[currentMapKey]){
       loadFogForMap(currentMapKey);
@@ -3568,70 +3607,207 @@
     showStopwatchToPlayer = this.classList.toggle('on');
   });
 
-  // ---------- Soundboard de Efeitos ----------
-  let sfxList = [];
-  let sfxSeq = 0;
-  let activeAudios = [];
+  // ---------- Soundboard (Trilha Sonora + Efeito Sonoro, via YouTube) ----------
+  let ytApiReady = false;
+  let ytPendingActions = [];
+  (function loadYtApi(){
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    document.body.appendChild(tag);
+  })();
+  window.onYouTubeIframeAPIReady = function(){
+    ytApiReady = true;
+    ytPendingActions.forEach(fn=>fn());
+    ytPendingActions = [];
+  };
 
-  function addSfx(src, name, silent){
-    const rec = { id:'sfx'+(sfxSeq++), name: name || 'Som', src };
-    sfxList.push(rec);
-    renderSfxList();
-    if(!silent) showNotif('+ Som adicionado: '+rec.name);
-    return rec;
+  function extractYtVideoId(url){
+    const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{11})/);
+    return m ? m[1] : null;
   }
 
-  function renderSfxList(){
-    const list = document.getElementById('sfxList');
-    if(!list) return;
-    list.innerHTML = '';
-    sfxList.forEach(s=>{
-      const row = document.createElement('div');
-      row.className = 'revealRow';
-      row.innerHTML =
-        '<button data-act="play" style="flex-shrink:0;" title="Tocar">▶️</button>'+
-        '<input type="text" class="charNameInput" value="'+s.name.replace(/"/g,'&quot;')+'" style="flex:1;">'+
-        '<button data-act="del">🗑</button>';
-      row.querySelector('[data-act="play"]').addEventListener('click', ()=> playSfx(s));
-      row.querySelector('input').addEventListener('input', e=>{ s.name = e.target.value; });
-      row.querySelector('[data-act="del"]').addEventListener('click', ()=>{
-        sfxList = sfxList.filter(x=>x.id!==s.id);
-        renderSfxList();
+  function createNativeAudioPlayer(src, onStateChange){
+    const audio = new Audio(src);
+    const wrapper = {
+      _playing: false,
+      playVideo(){ audio.play().catch(()=>{}); },
+      pauseVideo(){ audio.pause(); },
+      seekTo(t){ audio.currentTime = t; },
+      setVolume(v){ audio.volume = Math.max(0, Math.min(1, v/100)); },
+      setLoop(v){ audio.loop = !!v; },
+      destroy(){ audio.pause(); audio.src = ''; }
+    };
+    audio.addEventListener('play', ()=>{ wrapper._playing = true; onStateChange(); });
+    audio.addEventListener('pause', ()=>{ wrapper._playing = false; onStateChange(); });
+    audio.addEventListener('ended', ()=>{ wrapper._playing = false; onStateChange(); });
+    return wrapper;
+  }
+
+  function createYtSoundboard(cfg){
+    const state = { sounds: [], players: {}, seq: 0, exclusive: cfg.exclusive };
+
+    function render(){
+      const grid = document.getElementById(cfg.gridId);
+      const empty = document.getElementById(cfg.emptyId);
+      if(!grid) return;
+      grid.innerHTML = '';
+      empty.style.display = state.sounds.length ? 'none' : 'block';
+
+      state.sounds.forEach(s=>{
+        const playing = state.players[s.id] && state.players[s.id]._playing;
+        const badge = s.type==='youtube' ? '▶️YT' : (s.type==='file' ? '📁' : '🔗');
+        const row = document.createElement('div');
+        row.className = 'revealRow';
+        row.style.cssText = 'flex-wrap:wrap; background:'+(playing?'var(--panel2)':'transparent')+'; border-radius:4px; padding:4px;';
+        row.innerHTML =
+          '<button data-act="toggle" title="tocar/pausar" style="flex-shrink:0;'+(playing?'color:var(--gold);border-color:var(--gold);':'')+'">'+(playing?'⏸':'▶️')+'</button>'+
+          '<span title="'+(s.type==='youtube'?'YouTube':s.type==='file'?'Arquivo enviado':'Link direto')+'" style="font-size:.62rem; flex-shrink:0; opacity:.6;">'+badge+'</span>'+
+          '<span style="flex:1; font-size:.78rem; min-width:60px;">'+s.name.replace(/</g,'&lt;')+'</span>'+
+          '<button data-act="loop" title="repetir" style="flex-shrink:0;'+(s.loop?'color:var(--gold);border-color:var(--gold);':'')+'">🔁</button>'+
+          '<input type="range" data-act="vol" min="0" max="100" value="'+s.volume+'" style="width:60px;" title="volume">'+
+          '<button data-act="del" title="remover">🗑</button>';
+
+        row.querySelector('[data-act="toggle"]').addEventListener('click', ()=> togglePad(s.id));
+        row.querySelector('[data-act="loop"]').addEventListener('click', ()=>{
+          s.loop = !s.loop;
+          const p = state.players[s.id];
+          if(p && p.setLoop) p.setLoop(s.loop);
+          render();
+        });
+        row.querySelector('[data-act="vol"]').addEventListener('input', e=>{
+          s.volume = Number(e.target.value);
+          if(state.players[s.id]) state.players[s.id].setVolume(s.volume);
+        });
+        row.querySelector('[data-act="del"]').addEventListener('click', ()=>{
+          if(state.players[s.id]){ state.players[s.id].destroy(); delete state.players[s.id]; }
+          state.sounds = state.sounds.filter(x=>x.id!==s.id);
+          render();
+        });
+        grid.appendChild(row);
       });
-      list.appendChild(row);
+    }
+
+    function togglePad(id){
+      const run = ()=>{
+        const existing = state.players[id];
+        if(existing){
+          if(existing._playing){ existing.pauseVideo(); }
+          else{
+            if(state.exclusive) stopAllExcept(id);
+            const sound = state.sounds.find(s=>s.id===id);
+            existing.setVolume(sound.volume);
+            existing.playVideo();
+          }
+          return;
+        }
+        if(state.exclusive) stopAllExcept(id);
+        createPlayer(id);
+      };
+      const sound = state.sounds.find(s=>s.id===id);
+      if(sound && sound.type==='youtube' && !ytApiReady){ ytPendingActions.push(run); return; }
+      run();
+    }
+
+    function stopAllExcept(keepId){
+      Object.keys(state.players).forEach(id=>{
+        if(id===keepId) return;
+        const p = state.players[id];
+        if(p && p._playing){ p.pauseVideo(); p.seekTo(0); }
+      });
+    }
+
+    function createPlayer(id){
+      const sound = state.sounds.find(s=>s.id===id);
+      if(!sound) return;
+
+      if(sound.type==='youtube'){
+        const container = document.createElement('div');
+        container.id = cfg.prefix+'-yt-'+id;
+        document.getElementById(cfg.hiddenPlayersId).appendChild(container);
+        const player = new YT.Player(container.id, {
+          height:'0', width:'0', videoId: sound.videoId,
+          playerVars:{ autoplay:1, controls:0, disablekb:1 },
+          events:{
+            onReady: e=>{ e.target.setVolume(sound.volume); e.target.playVideo(); },
+            onStateChange: e=>{
+              if(e.data === YT.PlayerState.ENDED){
+                const s = state.sounds.find(x=>x.id===id);
+                if(s && s.loop){ e.target.seekTo(0); e.target.playVideo(); return; }
+                player._playing = false; render(); return;
+              }
+              player._playing = (e.data === YT.PlayerState.PLAYING);
+              render();
+            }
+          }
+        });
+        state.players[id] = player;
+      } else {
+        const player = createNativeAudioPlayer(sound.src, render);
+        player.setVolume(sound.volume);
+        player.setLoop(sound.loop);
+        player.playVideo();
+        state.players[id] = player;
+      }
+    }
+
+    function addSound(url, name){
+      const errEl = document.getElementById(cfg.errorId);
+      const trimmed = (url||'').trim();
+      if(!trimmed){ errEl.style.display = 'block'; return null; }
+      const videoId = extractYtVideoId(trimmed);
+      errEl.style.display = 'none';
+      const rec = videoId
+        ? { id: cfg.prefix+'-'+(state.seq++)+'-'+Date.now(), name: name || 'Som '+(state.sounds.length+1), type:'youtube', videoId, volume:70, loop: cfg.exclusive }
+        : { id: cfg.prefix+'-'+(state.seq++)+'-'+Date.now(), name: name || 'Som '+(state.sounds.length+1), type:'link', src: trimmed, volume:70, loop: cfg.exclusive };
+      state.sounds.push(rec);
+      render();
+      return rec;
+    }
+
+    function addFile(file){
+      const src = URL.createObjectURL(file);
+      const rec = { id: cfg.prefix+'-'+(state.seq++)+'-'+Date.now(), name: file.name.replace(/\.[^.]+$/,''), type:'file', src, volume:70, loop: cfg.exclusive };
+      state.sounds.push(rec);
+      render();
+      return rec;
+    }
+
+    function stopAll(){
+      Object.values(state.players).forEach(p=>{ p.pauseVideo(); p.seekTo(0); });
+      render();
+    }
+
+    document.getElementById(cfg.addBtnId).addEventListener('click', ()=>{
+      const urlInput = document.getElementById(cfg.urlInputId);
+      const nameInput = document.getElementById(cfg.nameInputId);
+      if(addSound(urlInput.value, nameInput.value.trim())){
+        urlInput.value = ''; nameInput.value = '';
+      }
     });
+    if(cfg.fileInputId){
+      document.getElementById(cfg.fileInputId).addEventListener('change', e=>{
+        Array.from(e.target.files).forEach(f=> addFile(f));
+        e.target.value = '';
+      });
+    }
+    if(cfg.stopAllBtnId){
+      document.getElementById(cfg.stopAllBtnId).addEventListener('click', stopAll);
+    }
+
+    render();
+    state.render = render;
+    return state;
   }
 
-  function playSfx(s){
-    const audio = new Audio(s.src);
-    audio.play().catch(()=>{});
-    activeAudios.push(audio);
-    audio.addEventListener('ended', ()=>{ activeAudios = activeAudios.filter(a=>a!==audio); });
-    showNotif('🔊 '+s.name);
-  }
-
-  document.getElementById('sfxInput').addEventListener('change', e=>{
-    Array.from(e.target.files).forEach(file=>{
-      const url = URL.createObjectURL(file);
-      addSfx(url, file.name.replace(/\.[^.]+$/,''));
-    });
-    e.target.value = '';
+  const trilhaSoundboard = createYtSoundboard({
+    prefix:'trilha', gridId:'trilhaGrid', emptyId:'trilhaEmpty', errorId:'trilhaError',
+    addBtnId:'btnTrilhaAdd', urlInputId:'trilhaUrlInput', nameInputId:'trilhaNameInput',
+    fileInputId:'trilhaFileInput', hiddenPlayersId:'ytHiddenPlayers', exclusive:true
   });
-  document.getElementById('btnSfxAddUrl').addEventListener('click', ()=>{
-    const input = document.getElementById('sfxUrlInput');
-    const url = input.value.trim();
-    if(!url) return;
-    const name = decodeURIComponent(url.split('/').pop().split('?')[0].split('#')[0]).replace(/\.[^.]+$/,'') || 'Som (link)';
-    addSfx(url, name);
-    input.value = '';
-  });
-  document.getElementById('sfxUrlInput').addEventListener('keydown', e=>{
-    if(e.key==='Enter') document.getElementById('btnSfxAddUrl').click();
-  });
-  document.getElementById('btnSfxStopAll').addEventListener('click', ()=>{
-    activeAudios.forEach(a=>{ a.pause(); a.currentTime = 0; });
-    activeAudios = [];
-    showNotif('⏹ Todos os sons parados');
+  const efeitoSoundboard = createYtSoundboard({
+    prefix:'efeito', gridId:'efeitoGrid', emptyId:'efeitoEmpty', errorId:'efeitoError',
+    addBtnId:'btnEfeitoAdd', urlInputId:'efeitoUrlInput', nameInputId:'efeitoNameInput',
+    fileInputId:'efeitoFileInput', hiddenPlayersId:'ytHiddenPlayers', stopAllBtnId:'btnEfeitoStopAll', exclusive:false
   });
 
   // ---------- Efeitos de ambiente (partículas) ----------
