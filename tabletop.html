@@ -3677,6 +3677,7 @@
         row.style.cssText = 'flex-wrap:wrap; background:'+(playing?'var(--panel2)':'transparent')+'; border-radius:4px; padding:4px;';
         row.innerHTML =
           '<button data-act="toggle" title="tocar/pausar" style="flex-shrink:0;'+(playing?'color:var(--gold);border-color:var(--gold);':'')+'">'+(playing?'⏸':'▶️')+'</button>'+
+          '<button data-act="stop" title="parar (volta ao início)" style="flex-shrink:0;">⏹</button>'+
           '<span title="'+(s.type==='youtube'?'YouTube':s.type==='file'?'Arquivo enviado':'Link direto')+'" style="font-size:.62rem; flex-shrink:0; opacity:.6;">'+badge+'</span>'+
           '<span style="flex:1; font-size:.78rem; min-width:60px;">'+s.name.replace(/</g,'&lt;')+'</span>'+
           '<button data-act="loop" title="repetir" style="flex-shrink:0;'+(s.loop?'color:var(--gold);border-color:var(--gold);':'')+'">🔁</button>'+
@@ -3684,6 +3685,7 @@
           '<button data-act="del" title="remover">🗑</button>';
 
         row.querySelector('[data-act="toggle"]').addEventListener('click', ()=> togglePad(s.id));
+        row.querySelector('[data-act="stop"]').addEventListener('click', ()=> stopPad(s.id));
         row.querySelector('[data-act="loop"]').addEventListener('click', ()=>{
           s.loop = !s.loop;
           const p = state.players[s.id];
@@ -3730,6 +3732,15 @@
         const p = state.players[id];
         if(p && p._playing){ p.pauseVideo(); p.seekTo(0); }
       });
+    }
+
+    function stopPad(id){
+      const p = state.players[id];
+      if(!p) return;
+      p.pauseVideo();
+      p.seekTo(0);
+      p._playing = false;
+      render();
     }
 
     function createPlayer(id){
