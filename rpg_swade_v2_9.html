@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RPG SWADE — Tabuleiro Virtual</title>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -23,69 +24,141 @@
     --focus:#c79a4b;
     font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif;
   }
+  html[data-theme="light"]{
+    --bg:#f4f1ea;
+    --panel:#ffffff;
+    --panel2:#eee9dd;
+    --line:#d9d2c2;
+    --ink:#2a2318;
+    --dim:#6b6355;
+    --rust:#8a3b2b;
+    --rust2:#a8442f;
+    --gold:#9c7530;
+    --sick:#4a6350;
+    --danger:#a8291b;
+    --focus:#9c7530;
+  }
   *{box-sizing:border-box;}
+  html{ height:100%; overflow:hidden; }
   body{
     margin:0; background:var(--bg); color:var(--ink);
-    min-height:100vh; display:flex; flex-direction:column;
+    height:100vh; overflow:hidden; display:flex; flex-direction:column;
   }
   ::selection{ background:var(--rust); color:#fff; }
 
-  header{
-    padding:14px 20px; border-bottom:1px solid var(--line);
-    display:flex; align-items:baseline; gap:14px;
-    background:linear-gradient(180deg,#14100f,#0c0d10);
+  header.topbar2{
+    height:48px; padding:0 14px; border-bottom:1px solid var(--line);
+    display:flex; align-items:center; gap:2px;
+    background:linear-gradient(180deg, var(--panel), var(--bg)); flex-shrink:0;
   }
-  header h1{
-    font-size:1.05rem; letter-spacing:.14em; text-transform:uppercase;
-    margin:0; font-weight:600; color:var(--ink);
+  .brand2{
+    display:flex; align-items:center; gap:8px; font-weight:700; font-size:.86rem;
+    letter-spacing:.08em; text-transform:uppercase; color:var(--gold);
+    padding-right:14px; margin-right:6px; border-right:1px solid var(--line);
   }
-  header h1 span{ color:var(--rust2); }
-  header p{ margin:0; font-size:.72rem; color:var(--dim); letter-spacing:.05em; }
+  .brand2 svg{ width:18px; height:18px; stroke:var(--gold); }
+  .campaignInput2{
+    background:transparent; border:none; border-bottom:1px solid var(--line);
+    color:var(--dim); font-size:.78rem; font-family:inherit; padding:4px; width:240px;
+  }
+  .spacer2{ flex:1; }
+  .topActions2{ display:flex; align-items:center; gap:4px; }
+  .topDivider2{ width:1px; height:22px; background:var(--line); margin:0 4px; }
+  .iconBtn2{
+    display:flex; align-items:center; justify-content:center;
+    width:32px; height:32px; border-radius:6px; background:none; border:none;
+    color:var(--dim); cursor:pointer; transition:background .12s, color .12s;
+    position:relative; overflow:hidden;
+  }
+  .iconBtn2 svg{ width:17px; height:17px; stroke:currentColor; }
+  .iconBtn2:hover{ background:var(--panel2); color:var(--ink); }
+  .iconBtn2.primary2{ background:var(--rust); color:#fff; }
+  .iconBtn2.primary2:hover{ background:var(--rust2); }
+  .iconBtn2.active{ background:var(--sick); color:#fff; }
+  .iconBtn2.active:hover{ background:var(--sick); filter:brightness(1.15); }
+  .fileBtn2 input[type=file]{ position:absolute; opacity:0; width:1px; height:1px; }
 
-  .layout{ flex:1; display:flex; flex-direction:column; min-height:0; }
+  .layout{
+    flex:1; min-height:0; display:grid;
+    grid-template-columns:56px 1fr 300px;
+    grid-template-rows:1fr auto;
+    transition:grid-template-columns .18s ease;
+  }
+  .layout.panelCollapsed{ grid-template-columns:56px 1fr 0px; }
+  .layout.panelCollapsed .ribbon{ overflow:hidden; border-left:none; padding:0; }
 
   .tabbar{
-    display:flex; gap:2px; background:var(--panel); border-bottom:1px solid var(--line);
-    padding:0 14px; overflow-x:auto; flex-shrink:0;
+    grid-column:1; grid-row:1;
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    background:var(--panel); border-right:1px solid var(--line);
+    padding:10px 0; overflow-y:auto;
   }
   .tabbar button{
-    background:none; border:none; border-bottom:3px solid transparent;
-    color:var(--dim); padding:11px 16px; font-size:.82rem; cursor:pointer;
-    white-space:nowrap; font-family:inherit; transition:.15s;
+    background:none; border:none;
+    color:var(--dim); padding:0; cursor:pointer; font-family:inherit;
+    width:40px; height:40px; border-radius:8px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .12s, color .12s;
   }
-  .tabbar button:hover{ color:var(--ink); }
-  .tabbar button.active{ color:#fff; border-bottom-color:var(--rust2); }
-  #btnRibbonToggle{
-    margin-left:auto; border-left:1px solid var(--line) !important;
-    padding-left:16px !important; padding-right:16px !important;
-    font-size:.9rem !important;
-  }
+  .tabbar button svg{ width:20px; height:20px; stroke:currentColor; }
+  .tabbar button:hover:not(:disabled){ background:var(--panel2); color:var(--ink); }
+  .tabbar button.active{ background:var(--rust); color:#fff; }
+  .tabbar button:disabled{ opacity:.3; cursor:not-allowed; }
 
   .ribbon{
-    background:var(--panel); border-bottom:1px solid var(--line);
-    flex-shrink:0; max-height:60vh; overflow:hidden;
-    transition:max-height .18s ease, padding .18s ease, border-width .18s ease;
+    grid-column:3; grid-row:1;
+    background:var(--panel); border-left:1px solid var(--line);
+    overflow-y:auto; overflow-x:hidden;
+    scrollbar-width:thin; scrollbar-color:var(--rust) var(--panel2);
   }
-  .ribbon.collapsed{
-    max-height:0; overflow:hidden; border-bottom-width:0;
+  .ribbon::-webkit-scrollbar{ width:10px; }
+  .ribbon::-webkit-scrollbar-track{ background:var(--panel2); }
+  .ribbon::-webkit-scrollbar-thumb{ background:var(--rust); border-radius:5px; border:2px solid var(--panel2); }
+  .ribbon::-webkit-scrollbar-thumb:hover{ background:var(--rust2); }
+
+  .blockHeader{
+    display:flex; align-items:center; justify-content:space-between;
+    cursor:default; user-select:none;
   }
+  .blockChevron{
+    background:none; border:none; color:var(--dim); cursor:pointer;
+    padding:2px; display:flex; align-items:center; flex-shrink:0;
+  }
+  .blockChevron svg{ width:14px; height:14px; transition:transform .15s; stroke:currentColor; }
+  .blockChevron:hover{ color:var(--ink); }
+  .block.collapsed .blockBody{ display:none; }
+
   .ribbonPanel{
-    display:none; flex-wrap:nowrap; gap:14px; padding:14px 16px;
-    overflow-x:auto; overflow-y:hidden; align-items:flex-start;
+    display:none; flex-direction:column; gap:14px; padding:14px;
   }
   .ribbonPanel.active{ display:flex; }
   .ribbonPanel .block{
-    width:220px; flex-shrink:0; margin:0;
-    max-height:calc(60vh - 40px); overflow-y:auto; overflow-x:hidden;
+    width:100% !important; flex-shrink:0; margin:0;
+    max-height:none; overflow-y:visible; overflow-x:hidden;
   }
-  .block{ display:flex; flex-direction:column; gap:8px; }
+  .block{ display:flex; flex-direction:column; gap:10px; }
+  .blockBody{ display:flex; flex-direction:column; gap:10px; }
+  .hint{ font-size:.68rem; color:var(--dim); line-height:1.6; margin:2px 0; }
   .block h2{
     font-size:.68rem; letter-spacing:.14em; text-transform:uppercase;
     color:var(--gold); margin:0 0 2px; font-weight:600;
     border-bottom:1px solid var(--line); padding-bottom:6px;
   }
   .row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-  .hint{ font-size:.68rem; color:var(--dim); line-height:1.5; margin:0; }
+
+  .fieldGroup{ display:flex; flex-direction:column; gap:4px; }
+  .fieldGroup label{ font-size:.68rem; color:var(--dim); }
+  .fieldRow2{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .btnGroup{ display:grid; gap:6px; }
+  .btnGroup.cols2{ grid-template-columns:1fr 1fr; }
+  .btnGroup.cols3{ grid-template-columns:1fr 1fr 1fr; }
+  .btnGroup button{ width:100%; }
+  .ribbonPanel input[type="number"],
+  .ribbonPanel input[type="text"]{ width:100%; }
+  .ribbonPanel .wide{ width:100%; }
+
+  main{ grid-column:2; grid-row:1; }
+  .zoomBar{ grid-column:1/4 !important; grid-row:2; position:static !important; }
 
   button{
     font-family:inherit; cursor:pointer; border:1px solid var(--line);
@@ -158,12 +231,22 @@
   /* ---------- STAGE ---------- */
   main{
     position:relative; overflow:auto; background:
-      radial-gradient(ellipse at 50% 0%, #17110f 0%, #0c0d10 55%);
-    display:flex; align-items:flex-start; justify-content:center; padding:26px;
+      radial-gradient(ellipse at 50% 0%, var(--panel2) 0%, var(--bg) 55%);
+    display:flex; align-items:flex-start; justify-content:flex-start; padding:26px;
     flex:1; min-height:0;
   }
   main:fullscreen{ overflow:hidden !important; padding:0; background:#000; }
   main.is-fullscreen{ overflow:hidden !important; padding:0; background:#000; }
+  .workspaceToggle2{
+    grid-column:2; grid-row:1; align-self:start; justify-self:end;
+    margin:12px 12px 0 0; z-index:250;
+    display:flex; align-items:center; justify-content:center;
+    width:30px; height:30px; border-radius:6px;
+    background:var(--panel); border:1px solid var(--line); color:var(--dim);
+    cursor:pointer; transition:background .12s, color .12s;
+  }
+  .workspaceToggle2 svg{ width:16px; height:16px; stroke:currentColor; }
+  .workspaceToggle2:hover{ background:var(--panel2); color:var(--ink); }
   #gmFsExitBtn{
     display:none; position:fixed; bottom:16px; left:16px; z-index:500;
     padding:10px 16px; border-radius:8px; background:rgba(20,20,26,.85);
@@ -173,7 +256,7 @@
   main.is-fullscreen #gmFsExitBtn, main:fullscreen #gmFsExitBtn{ display:block; }
   #stage{
     position:relative; box-shadow:0 20px 60px rgba(0,0,0,.6);
-    border:1px solid #000; background:#111;
+    border:1px solid var(--line); background:var(--panel2);
     touch-action:none;
   }
   #mapCanvas, #fogCanvas{ position:absolute; top:0; left:0; display:block; }
@@ -197,8 +280,8 @@
   .token:active{ cursor:grabbing; }
   .token.player.lit{ box-shadow: 0 0 12px 4px rgba(255,214,140,.85); }
   .token[data-player-hidden="true"]{ outline: 2px dashed rgba(224,90,90,.85); outline-offset: 3px; }
-  .token[data-player-hidden="true"]::after{
-    content:"🚫👁"; position:absolute; bottom:-9px; right:-6px; font-size:9px;
+  .tokenHiddenBadge{
+    position:absolute; bottom:-4px; left:-4px; font-size:9px; z-index:4;
     background:#1a1a22; border-radius:50%; padding:1px 2px; line-height:1;
   }
 
@@ -305,21 +388,21 @@
   }
   .selFlipBtn{
     position:absolute; right:-14px; bottom:-14px; pointer-events:auto;
-    width:26px; height:26px; border-radius:50%; background:rgba(10,10,14,0.95);
+    width:26px; height:26px; border-radius:50%; background:var(--panel);
     border:1.5px solid var(--gold); color:var(--ink); font-size:.85rem;
     cursor:pointer; display:flex; align-items:center; justify-content:center;
   }
   .selFlipBtn:hover{ color:#fff; border-color:#fff; }
   .selDeleteBtn{
     position:absolute; left:-14px; bottom:-14px; pointer-events:auto;
-    width:26px; height:26px; border-radius:50%; background:rgba(10,10,14,0.95);
+    width:26px; height:26px; border-radius:50%; background:var(--panel);
     border:1.5px solid var(--danger); color:var(--ink); font-size:.75rem;
     cursor:pointer; display:flex; align-items:center; justify-content:center;
   }
   .selDeleteBtn:hover{ color:#fff; border-color:#fff; }
   .selWoundBtn{
     position:absolute; top:50%; pointer-events:auto;
-    width:24px; height:24px; border-radius:50%; background:rgba(10,10,14,0.95);
+    width:24px; height:24px; border-radius:50%; background:var(--panel);
     border:1.5px solid #e24b4a; color:var(--ink); font-size:.7rem;
     cursor:pointer; display:flex; align-items:center; justify-content:center;
   }
@@ -329,7 +412,7 @@
   .selShakenBtn{
     position:absolute; left:50%; bottom:-14px; transform:translateX(-50%);
     pointer-events:auto; width:26px; height:26px; border-radius:50%;
-    background:rgba(10,10,14,0.95); border:1.5px solid #f0a820; color:var(--ink);
+    background:var(--panel); border:1.5px solid #f0a820; color:var(--ink);
     font-size:.75rem; cursor:pointer; display:flex; align-items:center; justify-content:center;
   }
   .selShakenBtn:hover{ color:#fff; border-color:#fff; }
@@ -354,7 +437,7 @@
 
   .tokenStatusPanel{
     position:absolute; transform:translateY(-50%); pointer-events:auto;
-    background:rgba(10,10,14,0.96); border:1px solid var(--gold);
+    background:var(--panel); border:1px solid var(--gold);
     border-radius:6px; padding:8px; z-index:95;
     width:190px; min-width:150px; max-width:420px;
     height:auto; min-height:80px; max-height:70vh;
@@ -401,7 +484,7 @@
 
   .token .lbl{
     position:absolute; top:100%; left:50%; transform:translateX(-50%);
-    font-size:.6rem; color:var(--ink); background:rgba(0,0,0,.7);
+    font-size:.6rem; color:var(--ink); background:var(--panel2);
     padding:1px 5px; border-radius:2px; white-space:nowrap; margin-top:3px;
     pointer-events:none;
   }
@@ -430,7 +513,7 @@
   .charCard:hover{ border-color:var(--rust2); }
   .charThumb{
     width:36px; height:36px; border-radius:50%; flex-shrink:0;
-    background:#111; border:2px solid #4d7ea8; display:flex;
+    background:var(--panel2); border:2px solid #4d7ea8; display:flex;
     align-items:center; justify-content:center; font-size:1.2rem; overflow:hidden;
   }
   .charThumb img{ width:100%; height:100%; object-fit:cover; }
@@ -472,13 +555,13 @@
   }
 
   .notif{
-    position:fixed; bottom:16px; left:316px;
+    position:fixed; bottom:50px; left:50%;
     background:var(--panel2); border:1px solid var(--gold); color:var(--ink);
     font-size:.78rem; padding:8px 14px; border-radius:6px;
-    opacity:0; transform:translateY(8px); transition:.25s;
-    pointer-events:none; z-index:30;
+    opacity:0; transform:translateX(-50%) translateY(8px); transition:.25s;
+    pointer-events:none; z-index:300;
   }
-  .notif.show{ opacity:1; transform:translateY(0); }
+  .notif.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 
   footer{
     padding:8px 20px; border-top:1px solid var(--line); font-size:.65rem;
@@ -493,15 +576,24 @@
 </head>
 <body>
 
-<header>
-  <h1>Tabuleiro <span>Virtual</span></h1>
-  <input type="text" id="campaignName" placeholder="Nome da campanha / mesa (opcional)"
-         style="background:transparent;border:none;border-bottom:1px solid var(--line);color:var(--dim);font-size:.8rem;font-family:inherit;padding:2px 4px;width:280px;">
-  <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
-    <button id="btnSaveSession" title="Salvar sessão (.json)">💾 Salvar</button>
-    <label class="fileBtn"><button title="Carregar sessão">📂 Carregar</button>
+<header class="topbar2">
+  <div class="brand2">
+    <svg data-lucide="dices"></svg>
+    RPG SWADE
+  </div>
+  <input type="text" id="campaignName" placeholder="Nome da campanha / mesa (opcional)" class="campaignInput2">
+  <div class="spacer2"></div>
+  <div class="topActions2">
+    <button id="btnSaveSession" class="iconBtn2" title="Salvar sessão (.json)"><svg data-lucide="save"></svg></button>
+    <label class="iconBtn2 fileBtn2" title="Carregar sessão">
+      <svg data-lucide="folder-open"></svg>
       <input type="file" id="loadSessionInput" accept="application/json">
     </label>
+    <div class="topDivider2"></div>
+    <button id="btnPlayerView" class="iconBtn2 primary2" title="Abrir tela do jogador"><svg data-lucide="monitor"></svg></button>
+    <button id="btnPlayerFullscreen" class="iconBtn2" title="Tela cheia na tela do jogador"><svg data-lucide="maximize"></svg></button>
+    <div class="topDivider2"></div>
+    <button id="btnThemeToggle" class="iconBtn2" title="Alternar tema claro/escuro"><svg data-lucide="moon"></svg></button>
   </div>
 </header>
 
@@ -509,14 +601,12 @@
 
   <!-- ===================== SIDEBAR ===================== -->
   <div class="tabbar" id="tabbar">
-    <button class="active" data-tab="cena">🗺️ Cena</button>
-    <button data-tab="tokens">🧑 Tokens</button>
-    <button data-tab="atmosfera">🌩️ Atmosfera</button>
-    <button data-tab="mesa">🎲 Mesa</button>
-    <button data-tab="tela">📺 Tela do Jogador</button>
-    <button data-tab="resumo">📋 Resumão</button>
-    <button data-tab="referencia">📚 Referência</button>
-    <button id="btnRibbonToggle" title="Recolher painel (mais espaço pro mapa)">▾</button>
+    <button class="active" data-tab="cena" title="Cena / Mapa"><svg data-lucide="map"></svg></button>
+    <button data-tab="tokens" title="Tokens"><svg data-lucide="users"></svg></button>
+    <button data-tab="atmosfera" class="comingSoon2" title="Atmosfera (próxima leva)" disabled><svg data-lucide="cloud-lightning"></svg></button>
+    <button data-tab="mesa" class="comingSoon2" title="Mesa (próxima leva)" disabled><svg data-lucide="dices"></svg></button>
+    <button data-tab="resumo" class="comingSoon2" title="Resumão (próxima leva)" disabled><svg data-lucide="notebook-pen"></svg></button>
+    <button data-tab="referencia" class="comingSoon2" title="Referência (próxima leva)" disabled><svg data-lucide="book-open"></svg></button>
   </div>
 
   <div class="ribbon">
@@ -536,94 +626,80 @@
       <p class="hint" id="mapStatus">Nenhum mapa carregado ainda.</p>
     </div>
 
-    <div class="block" style="width:260px">
-      <h2>🖼️ Ajustar Mapa</h2>
-      <div class="row">
-        <div class="switch" id="btnMapEditMode"></div>
-        <span style="font-size:.75rem" id="mapEditLabel">🔒 Travado</span>
-      </div>
-      <div>
-        <label class="small">Tamanho da imagem</label>
-        <input type="range" id="mapScaleSlider" min="20" max="300" value="100">
-      </div>
-      <div class="row">
-        <button id="btnMapResetFit" class="wide">↺ Ajustar automaticamente</button>
-      </div>
-      <p class="hint">Destrave, arraste o mapa pra reposicionar e use o controle de tamanho. Trave de novo quando estiver bom, pra não mexer sem querer enquanto joga.</p>
-    </div>
-
     <div class="block" style="width:280px">
-      <h2>Grade tática &amp; Régua</h2>
-      <div class="row">
-        <div>
+      <h2>📐 Grade</h2>
+      <div class="fieldRow2">
+        <div class="fieldGroup">
           <label class="small">Colunas</label>
           <input type="number" id="gridCols" value="20" min="4" max="60">
         </div>
-        <div>
+        <div class="fieldGroup">
           <label class="small">Linhas</label>
           <input type="number" id="gridRows" value="13" min="4" max="60">
         </div>
-        <div>
-          <label class="small">Cor</label>
-          <input type="color" id="gridColor" value="#c79a4b">
-        </div>
-        <button id="btnGridToggle" class="active">Grade: Visível</button>
       </div>
-      <div class="row" style="margin-top:8px; border-top:1px solid var(--line); padding-top:8px;">
+      <div class="fieldGroup">
+        <label class="small">Cor da grade</label>
+        <input type="color" id="gridColor" value="#c79a4b" style="width:100%; height:30px; padding:2px;">
+      </div>
+      <button id="btnGridToggle" class="active wide">Grade: Visível</button>
+      <div class="row" style="margin-top:4px; border-top:1px solid var(--line); padding-top:8px;">
         <div class="switch" id="btnSnapGrid"></div>
-        <span style="font-size:.75rem">🧲 Ímã — encaixar tokens e gabaritos na grade</span>
+        <span style="font-size:.75rem">🧲 Ímã — encaixar na grade</span>
       </div>
-      <div class="row" style="margin-top:8px; border-top:1px solid var(--line); padding-top:8px;">
-        <div class="switch" id="btnMeasureMode"></div>
-        <span style="font-size:.75rem">📏 Modo régua</span>
-        <div>
-          <label class="small">m/quadro</label>
-          <input type="number" id="metersPerSquare" value="1.5" step="0.1" min="0.1" style="width:60px">
-        </div>
-        <button id="btnMeasureClear">Limpar</button>
-      </div>
-      <p class="hint">Régua: clique perto de um token (encaixa sozinho) e arraste até outro ponto.</p>
 
-      <div class="row" style="margin-top:8px; border-top:1px solid var(--line); padding-top:8px;">
-        <span style="font-size:.75rem; font-weight:600; color:var(--gold); text-transform:uppercase; letter-spacing:.08em;">💥 Gabaritos de Área</span>
+      <div style="display:none">
+        <div class="row">
+          <div class="switch" id="btnMeasureMode"></div>
+          <span style="font-size:.75rem">📏 Modo régua</span>
+          <div>
+            <label class="small">m/quadro</label>
+            <input type="number" id="metersPerSquare" value="1.5" step="0.1" min="0.1" style="width:60px">
+          </div>
+          <button id="btnMeasureClear">Limpar</button>
+        </div>
+        <div class="row">
+          <div class="switch" id="btnTemplateMode"></div>
+          <span style="font-size:.75rem">Modo gabarito</span>
+        </div>
+        <div class="row">
+          <button data-tpl="small">Pequeno</button>
+          <button data-tpl="medium">Médio</button>
+          <button data-tpl="large">Grande</button>
+          <button data-tpl="cone">Cone</button>
+        </div>
+        <div class="row">
+          <button id="btnTemplateClear" class="danger wide">Limpar gabarito</button>
+        </div>
       </div>
-      <div class="row">
-        <div class="switch" id="btnTemplateMode"></div>
-        <span style="font-size:.75rem">Modo gabarito</span>
-      </div>
-      <div class="row">
-        <button data-tpl="small">Pequeno</button>
-        <button data-tpl="medium">Médio</button>
-        <button data-tpl="large">Grande</button>
-        <button data-tpl="cone">Cone</button>
-      </div>
-      <div class="row">
-        <button id="btnTemplateClear" class="danger wide">Limpar gabarito</button>
-      </div>
-      <p class="hint">Ligue o modo, escolha o tamanho e clique+arraste no mapa. No Cone, arraste pra apontar a direção. Tamanhos seguem o livro: Pequeno 3, Médio 5, Grande 7 quadros de diâmetro; Cone 9 quadros.</p>
     </div>
 
     <div class="block" style="width:300px">
-      <h2>Neblina de guerra</h2>
-      <div class="row">
-        <button id="btnFogToggle">Neblina: Desativada</button>
-        <button id="fogModeReveal" class="active">✏️ Revelar</button>
-        <button id="fogModeCover">🖌️ Cobrir</button>
+      <h2>🌫️ Névoa de Guerra</h2>
+      <button id="btnFogToggle" class="wide">Neblina: Desativada</button>
+      <div class="fieldGroup">
+        <label class="small">Modo</label>
+        <div class="btnGroup cols2">
+          <button id="fogModeReveal" class="active">✏️ Revelar</button>
+          <button id="fogModeCover">🖌️ Cobrir</button>
+        </div>
       </div>
-      <div class="row">
-        <span class="hint" style="margin:0">Formato:</span>
-        <button id="shapeBrush" class="active">⚪ Pincel</button>
-        <button id="shapeRect">▭ Retângulo</button>
-        <button id="shapeCircle">⭕ Círculo</button>
+      <div class="fieldGroup">
+        <label class="small">Formato do pincel</label>
+        <div class="btnGroup cols3">
+          <button id="shapeBrush" class="active">⚪ Pincel</button>
+          <button id="shapeRect">▭ Retâng.</button>
+          <button id="shapeCircle">⭕ Círculo</button>
+        </div>
       </div>
-      <div class="row">
-        <label class="small" style="width:100%">Tamanho do pincel</label>
+      <div class="fieldGroup">
+        <label class="small">Tamanho do pincel</label>
         <input type="range" id="brushSize" min="10" max="120" value="45" style="width:100%">
       </div>
-      <div class="row">
-        <button id="btnFogRevealAll">Revelar tudo</button>
-        <button id="btnFogCoverAll">Cobrir tudo</button>
-        <button id="btnFogUndo">↩ Desfazer</button>
+      <div class="btnGroup cols3">
+        <button id="btnFogRevealAll" style="font-size:.66rem; padding:6px 4px;">Revelar tudo</button>
+        <button id="btnFogCoverAll" style="font-size:.66rem; padding:6px 4px;">Cobrir tudo</button>
+        <button id="btnFogUndo" style="font-size:.66rem; padding:6px 4px;">↩ Desfazer</button>
       </div>
       <p class="hint">Clique e arraste sobre o mapa para revelar ou cobrir áreas.</p>
 
@@ -720,10 +796,14 @@
 
     <div class="block">
       <h2>🛠️ Gerenciar tokens</h2>
-      <button id="btnSelectMode" class="wide">🖱️ Modo seleção em grupo</button>
-      <button id="btnRemoveMode" class="wide">🗑️ Modo remover token</button>
-      <button id="btnClearTokens" class="wide danger">Limpar todos os tokens</button>
-      <button id="btnExport" class="wide">⬇ Exportar imagem (PNG)</button>
+      <div class="fieldGroup">
+        <button id="btnSelectMode" class="wide">🖱️ Modo seleção em grupo</button>
+        <button id="btnRemoveMode" class="wide">🗑️ Modo remover token</button>
+      </div>
+      <div class="fieldGroup">
+        <button id="btnExport" class="wide">⬇ Exportar imagem (PNG)</button>
+        <button id="btnClearTokens" class="wide danger">Limpar todos os tokens</button>
+      </div>
       <p class="hint">Clique num token da paleta para colocá-lo no centro do tabuleiro, depois arraste até a posição certa. Clique duas vezes num token para removê-lo, ou use o modo remover.</p>
       <p class="hint">🖱️ Modo seleção: arraste um retângulo sobre vários tokens pra selecioná-los juntos (igual Photoshop), ou clique em cada um. Depois é só arrastar qualquer um deles — o grupo inteiro se move junto.</p>
     </div>
@@ -931,8 +1011,7 @@
 
     <div class="block" style="border:1px solid var(--gold); border-radius:6px; padding:10px;">
       <h2>📺 Transmissão — segunda tela</h2>
-      <button id="btnPlayerView" class="wide">Abrir tela do jogador</button>
-      <button id="btnPlayerFullscreen" class="wide">⛶ Tela cheia na tela do jogador</button>
+      <p class="hint">🔀 Os botões "Abrir tela do jogador" e "Tela cheia na tela do jogador" agora ficam na barra superior (ícones 🖥️ e ⛶), acessíveis de qualquer aba.</p>
       <button id="btnGmFullscreen" class="wide">⛶ Tela cheia aqui (na minha tela)</button>
       <p class="hint">Abre uma janela só com o mapa (sem estes controles). Arraste-a para o segundo monitor ou TV. O botão "Tela cheia" tenta ativar direto daqui — se o navegador bloquear, tem um botão ⛶ discreto no canto da própria janela do jogador também. Continue controlando tudo por aqui — a outra tela se atualiza sozinha.</p>
     </div>
@@ -1158,6 +1237,7 @@
       </div>
     </div>
   </main>
+  <button id="btnTogglePanel" class="workspaceToggle2" title="Recolher painel de propriedades"><svg data-lucide="panel-right-close"></svg></button>
   <div id="ytHiddenPlayers" style="position:absolute; width:0; height:0; overflow:hidden;"></div>
 </div>
 
@@ -1178,6 +1258,64 @@
 
 <script>
 (function(){
+  lucide.createIcons();
+
+  function makeBlocksCollapsible(){
+    document.querySelectorAll('.ribbonPanel .block').forEach(block=>{
+      if(block.dataset.collapsibleReady) return; // evita duplicar se rodar de novo
+      block.dataset.collapsibleReady = 'true';
+      const h2 = block.querySelector('h2');
+      if(!h2) return;
+
+      // Agrupa tudo que vem depois do titulo numa "caixa de corpo", pra dar
+      // pra esconder/mostrar de uma vez só, sem precisar editar cada bloco na mao.
+      const body = document.createElement('div');
+      body.className = 'blockBody';
+      let node = h2.nextSibling;
+      while(node){
+        const next = node.nextSibling;
+        body.appendChild(node);
+        node = next;
+      }
+      block.appendChild(body);
+
+      const chevron = document.createElement('button');
+      chevron.className = 'blockChevron';
+      chevron.innerHTML = '<svg data-lucide="chevron-down"></svg>';
+      chevron.title = 'Recolher/expandir';
+      h2.appendChild(chevron);
+      h2.classList.add('blockHeader');
+
+      function toggle(){
+        const collapsed = block.classList.toggle('collapsed');
+        chevron.querySelector('svg').style.transform = collapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+      }
+      chevron.addEventListener('click', e=>{ e.stopPropagation(); toggle(); });
+      h2.addEventListener('dblclick', toggle);
+    });
+    lucide.createIcons();
+  }
+  makeBlocksCollapsible();
+
+  // ---------- Tema claro/escuro ----------
+  const THEME_KEY = 'tabuleiro_theme';
+  function applyTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    const btn = document.getElementById('btnThemeToggle');
+    if(btn){
+      btn.innerHTML = '<svg data-lucide="'+(theme==='light'?'sun':'moon')+'"></svg>';
+      btn.title = theme==='light' ? 'Mudar pro tema escuro' : 'Mudar pro tema claro';
+      lucide.createIcons();
+    }
+  }
+  applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+  document.getElementById('btnThemeToggle').addEventListener('click', ()=>{
+    const atual = document.documentElement.getAttribute('data-theme') || 'dark';
+    const novo = atual === 'light' ? 'dark' : 'light';
+    applyTheme(novo);
+    localStorage.setItem(THEME_KEY, novo);
+  });
+
   let notifTimer = null;
   function showNotif(msg){
     const n = document.getElementById('notif');
@@ -1617,7 +1755,7 @@
   document.getElementById('mapAddInput').addEventListener('change', e=>{
     Array.from(e.target.files).forEach(file=>{
       const isVideo = file.type.indexOf('video/')===0;
-      const isGif = file.type === 'image/gif';
+      const isGif = file.type === 'image/gif' || file.type === 'image/webp';
       const name = file.name.replace(/\.[^.]+$/,'');
       if(isVideo){
         const url = URL.createObjectURL(file);
@@ -1631,32 +1769,10 @@
     e.target.value = '';
   });
 
-  document.getElementById('btnMapEditMode').addEventListener('click', function(){
-    mapEditMode = this.classList.toggle('on');
-    document.getElementById('mapEditLabel').textContent = mapEditMode ? '🔓 Destravado — arraste o mapa' : '🔒 Travado';
-    if(mapCanvas) mapCanvas.style.cursor = mapEditMode ? 'move' : 'default';
-    if(mapEditMode && currentMapId){
-      document.getElementById('mapScaleSlider').value = Math.round(getMapTransform(currentMapId).scale*100);
-    }
-  });
-  document.getElementById('mapScaleSlider').addEventListener('input', function(){
-    if(!currentMapId) return;
-    const t = getMapTransform(currentMapId);
-    const oldScale = t.scale;
-    const newScale = (+this.value)/100;
-    const cx = W/2, cy = H/2;
-    t.offsetX = cx - (cx - t.offsetX) * (newScale/oldScale);
-    t.offsetY = cy - (cy - t.offsetY) * (newScale/oldScale);
-    t.scale = newScale;
-    drawMap();
-  });
-  document.getElementById('btnMapResetFit').addEventListener('click', ()=>{
-    if(!currentMapId || !currentImg) return;
-    mapTransformByMap[currentMapId] = computeCoverFit(currentImg);
-    document.getElementById('mapScaleSlider').value = Math.round(mapTransformByMap[currentMapId].scale*100);
-    drawMap();
-    showNotif('🖼️ Mapa reajustado automaticamente');
-  });
+  // btnMapEditMode/mapScaleSlider/btnMapResetFit removidos — o mapa já se
+  // ajusta automaticamente sozinho (getMapTransform chama computeCoverFit
+  // na primeira vez que cada mapa é desenhado), então o ajuste manual
+  // nunca era necessário de verdade.
 
   let mapVideoAnimHandle = null;
   function stepMapVideo(){
@@ -1917,7 +2033,7 @@
       }
       entradas.push({
         id: npc.id||null, emoji: emojiParaNpc(npc), label: npc.nome_exibicao,
-        cat: npc.combatente?'monster':'item', color: corParaNpc(npc), imgSrc: null,
+        cat: npc.combatente?'monster':'item', color: corParaNpc(npc), imgSrc: null, imgDown: null,
         opts: { notes: formatarStatsNpc(npc), wounds:0, fatigue:0 },
       });
     });
@@ -1933,12 +2049,35 @@
       const row = document.createElement('div');
       row.className = 'charCard';
       row.title = o.opts.notes;
+      const thumbInner = o.imgSrc
+        ? '<img src="'+o.imgSrc+'">'
+        : '<span>'+o.emoji+'</span>';
       row.innerHTML =
-        '<div class="charThumb" style="display:flex;align-items:center;justify-content:center;font-size:1.3rem;border:1px solid '+o.color+'">'+o.emoji+'</div>'+
-        '<span style="flex:1;font-size:.76rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+o.label+'</span>'+
-        '<button data-act="place" style="padding:5px 8px;font-size:.65rem;flex-shrink:0;">📍 Colocar</button>';
+        '<div class="charThumb" style="border-color:'+o.color+'">'+thumbInner+'</div>'+
+        '<input type="text" class="charNameInput" value="'+o.label.replace(/"/g,'&quot;')+'">'+
+        '<label class="charUpload" title="Trocar imagem"><button>🖼️</button><input type="file" accept="image/*"></label>'+
+        '<label class="charDownBtn'+(o.imgDown?' has':'')+'" title="Imagem alternativa: caído/derrotado (troca sozinho quando marcar Incapacitado)">'+(o.imgDown?'🖼️✓':'🖼️+')+
+          '<input type="file" accept="image/*"></label>'+
+        '<button data-act="place" title="Colocar no mapa" style="padding:5px 8px;font-size:.65rem;flex-shrink:0;">📍</button>'+
+        '<button data-act="del" style="padding:5px 8px;font-size:.65rem;flex-shrink:0;">🗑</button>';
       row.querySelector('[data-act="place"]').addEventListener('click', ()=>{
-        addToken(o.emoji, o.label, o.cat, o.color, o.imgSrc, o.opts);
+        addToken(o.imgSrc?null:o.emoji, o.label, o.cat, o.color, o.imgSrc, Object.assign({}, o.opts, { imgDown: o.imgDown }));
+      });
+      row.querySelector('.charNameInput').addEventListener('input', e=>{ o.label = e.target.value; });
+      wireTrocarImagem(row, o, 'imgSrc', renderImportedNpcList);
+      const downInput = row.querySelector('.charDownBtn input');
+      downInput.addEventListener('click', e=> e.stopPropagation());
+      downInput.addEventListener('change', e=>{
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = ev=>{ o.imgDown = ev.target.result; renderImportedNpcList(); showNotif('🖼️ Imagem de caído definida pra '+o.label); };
+        reader.readAsDataURL(file);
+      });
+      row.querySelector('.charDownBtn').addEventListener('click', e=> e.stopPropagation());
+      row.querySelector('[data-act="del"]').addEventListener('click', ()=>{
+        importedNpcs = importedNpcs.filter(x=>x!==o);
+        renderImportedNpcList();
       });
       list.appendChild(row);
     });
@@ -1963,6 +2102,19 @@
     e.target.value = '';
   });
 
+  function wireTrocarImagem(row, obj, campo, onChanged){
+    const input = row.querySelector('.charUpload input');
+    if(!input) return;
+    input.addEventListener('click', e=> e.stopPropagation());
+    input.addEventListener('change', e=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = ev=>{ obj[campo] = ev.target.result; onChanged(); };
+      reader.readAsDataURL(file);
+    });
+  }
+
   function renderCustomPlayerList(){
     const list = document.getElementById('customPlayerList');
     if(!list) return;
@@ -1973,12 +2125,14 @@
       row.innerHTML =
         '<div class="charThumb"><img src="'+o.src+'"></div>'+
         '<input type="text" class="charNameInput" value="'+o.name.replace(/"/g,'&quot;')+'">'+
+        '<label class="charUpload" title="Trocar imagem"><button>🖼️</button><input type="file" accept="image/*"></label>'+
         '<label class="charDownBtn'+(o.srcDown?' has':'')+'" title="Imagem alternativa: caído/derrotado (troca sozinho quando marcar Incapacitado)">'+(o.srcDown?'🖼️✓':'🖼️+')+
           '<input type="file" accept="image/*"></label>'+
         '<button data-act="del" style="padding:5px 8px;font-size:.65rem;flex-shrink:0;">🗑</button>';
       const place = ()=> addToken(null, o.name, 'player', '#4d7ea8', o.src, { imgDown: o.srcDown });
       row.querySelector('.charThumb').addEventListener('click', place);
       row.querySelector('.charNameInput').addEventListener('input', e=>{ o.name = e.target.value; });
+      wireTrocarImagem(row, o, 'src', renderCustomPlayerList);
       const downInput = row.querySelector('.charDownBtn input');
       downInput.addEventListener('click', e=> e.stopPropagation());
       downInput.addEventListener('change', e=>{
@@ -2027,10 +2181,12 @@
       row.innerHTML =
         '<div class="charThumb"><img src="'+o.src+'"></div>'+
         '<input type="text" class="charNameInput" value="'+o.name.replace(/"/g,'&quot;')+'">'+
+        '<label class="charUpload" title="Trocar imagem"><button>🖼️</button><input type="file" accept="image/*"></label>'+
         '<button data-act="del" style="padding:5px 8px;font-size:.65rem;flex-shrink:0;">🗑</button>';
       const place = ()=> addToken(null, o.name, 'item', '#c79a4b', o.src);
       row.querySelector('.charThumb').addEventListener('click', place);
       row.querySelector('.charNameInput').addEventListener('input', e=>{ o.name = e.target.value; });
+      wireTrocarImagem(row, o, 'src', renderCustomObjectList);
       row.querySelector('[data-act="del"]').addEventListener('click', (e)=>{
         e.stopPropagation();
         customObjects = customObjects.filter(x=>x.id!==o.id);
@@ -2068,12 +2224,14 @@
       row.innerHTML =
         '<div class="charThumb"><img src="'+o.src+'"></div>'+
         '<input type="text" class="charNameInput" value="'+o.name.replace(/"/g,'&quot;')+'">'+
+        '<label class="charUpload" title="Trocar imagem"><button>🖼️</button><input type="file" accept="image/*"></label>'+
         '<label class="charDownBtn'+(o.srcDown?' has':'')+'" title="Imagem alternativa: caído/derrotado (troca sozinho quando marcar Incapacitado)">'+(o.srcDown?'🖼️✓':'🖼️+')+
           '<input type="file" accept="image/*"></label>'+
         '<button data-act="del" style="padding:5px 8px;font-size:.65rem;flex-shrink:0;">🗑</button>';
       const place = ()=> addToken(null, o.name, 'monster', '#c0392b', o.src, { imgDown: o.srcDown });
       row.querySelector('.charThumb').addEventListener('click', place);
       row.querySelector('.charNameInput').addEventListener('input', e=>{ o.name = e.target.value; });
+      wireTrocarImagem(row, o, 'src', renderCustomMonsterList);
       const downInput = row.querySelector('.charDownBtn input');
       downInput.addEventListener('click', e=> e.stopPropagation());
       downInput.addEventListener('change', e=>{
@@ -2114,12 +2272,8 @@
     });
   });
 
-  document.getElementById('btnRibbonToggle').addEventListener('click', function(){
-    const ribbon = document.querySelector('.ribbon');
-    const collapsed = ribbon.classList.toggle('collapsed');
-    this.textContent = collapsed ? '▸' : '▾';
-    this.title = collapsed ? 'Expandir painel' : 'Recolher painel (mais espaço pro mapa)';
-  });
+  // btnRibbonToggle removido — não faz mais sentido no layout de barra
+  // lateral fixa; o painel direito não precisa mais recolher.
 
   function addToken(emoji, label, cat, color, imgSrc, opts){
     if(!tokenLayer){ alert('Carregue um mapa primeiro.'); return; }
@@ -2218,8 +2372,22 @@
         noteEl.textContent = '📝';
         el.appendChild(noteEl);
       }
+      noteEl.title = 'Este token tem notas — clique com o botão direito pra ver';
     } else if(noteEl){
       noteEl.remove();
+    }
+
+    let hiddenEl = el.querySelector('.tokenHiddenBadge');
+    if(el.dataset.playerHidden === 'true'){
+      if(!hiddenEl){
+        hiddenEl = document.createElement('div');
+        hiddenEl.className = 'tokenHiddenBadge';
+        hiddenEl.textContent = '🚫👁';
+        el.appendChild(hiddenEl);
+      }
+      hiddenEl.title = 'Oculto da Tela do Jogador — você vê, os jogadores não';
+    } else if(hiddenEl){
+      hiddenEl.remove();
     }
 
     const benes = parseInt(el.dataset.bennies||'3');
@@ -3138,7 +3306,7 @@
     playerWin.document.write('<!DOCTYPE html><html><head><title>Mesa — Tela do jogador</title><style>html,body{margin:0;height:100%;width:100%;background:#000;overflow:hidden;}body{display:flex;align-items:center;justify-content:center;}canvas{max-width:100vw;max-height:100vh;width:auto;height:auto;display:block;object-fit:contain;}html:fullscreen canvas{max-width:none;max-height:none;width:100vw;height:100vh;object-fit:cover;}#fsBtn{position:fixed;bottom:12px;right:12px;z-index:999;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);color:#fff;font-size:17px;cursor:pointer;opacity:.45;transition:opacity .15s;}#fsBtn:hover{opacity:1;}</style></head><body><canvas id="pcanvas"></canvas><button id="fsBtn" title="Tela cheia">⛶</button><script>document.getElementById("fsBtn").addEventListener("click",function(){if(!document.fullscreenElement){document.documentElement.requestFullscreen().catch(function(){});}else{document.exitFullscreen();}});document.documentElement.requestFullscreen().catch(function(){});<\/script></body></html>');
     playerWin.document.close();
     if(currentPdf) showPdfOnPlayer(currentPdf.src);
-    document.getElementById('btnPlayerView').textContent = 'Tela do jogador aberta — clique para focar';
+    document.getElementById('btnPlayerView').title = 'Tela do jogador aberta — clique para focar';
     document.getElementById('btnPlayerView').classList.add('active');
     if(!playerSyncRunning){ playerSyncRunning = true; syncPlayerLoop(); }
   }
@@ -3147,7 +3315,7 @@
     if(playerWin && playerWin.closed){
       playerWin = null;
       playerSyncRunning = false;
-      document.getElementById('btnPlayerView').textContent = 'Abrir tela do jogador';
+      document.getElementById('btnPlayerView').title = 'Abrir tela do jogador';
       document.getElementById('btnPlayerView').classList.remove('active');
       return;
     }
@@ -4876,16 +5044,14 @@
 
   function applyZoom(){
     stage.style.transform = 'translate('+shakeDX+'px,'+shakeDY+'px) scale('+zoom+')';
-    stage.style.transformOrigin = 'top center';
+    stage.style.transformOrigin = 'top left';
   }
 
   function centerStage(){
-    // Centraliza horizontalmente o mapa dentro da area visivel do <main>.
-    // Usa scrollWidth/clientWidth (medidos pelo proprio navegador, ja
-    // contando padding) em vez de calcular tamanho na mao — mais confiavel
-    // que depender do justify-content:center do flexbox quando o conteudo
-    // estoura o tamanho do contêiner, que é inconsistente entre navegadores.
-    mainEl.scrollLeft = Math.max(0, (mainEl.scrollWidth - mainEl.clientWidth) / 2);
+    // Mapa alinhado no canto superior esquerdo do workspace — só garante
+    // que a rolagem comeca no canto (0,0), sem calcular centralizacao.
+    mainEl.scrollLeft = 0;
+    mainEl.scrollTop = 0;
   }
 
   document.getElementById('zoomIn').addEventListener('click', ()=>{ zoom=Math.min(2,zoom+.1); applyZoom(); });
@@ -4914,6 +5080,17 @@
     } else {
       document.exitFullscreen();
     }
+  });
+  document.getElementById('btnTogglePanel').addEventListener('click', function(){
+    const layout = document.querySelector('.layout');
+    const collapsed = layout.classList.toggle('panelCollapsed');
+    this.innerHTML = '<svg data-lucide="'+(collapsed?'panel-right-open':'panel-right-close')+'"></svg>';
+    this.title = collapsed ? 'Expandir painel de propriedades' : 'Recolher painel de propriedades';
+    lucide.createIcons();
+    // O workspace muda de largura com a transicao do CSS (.18s) — espera
+    // ela terminar antes de recalcular a centralizacao, senao mede o
+    // tamanho antigo.
+    setTimeout(centerStage, 200);
   });
   document.getElementById('gmFsExitBtn').addEventListener('click', ()=>{
     if(document.fullscreenElement) document.exitFullscreen();
