@@ -646,6 +646,7 @@
     <button data-tab="tokens" title="Tokens"><svg data-lucide="users"></svg></button>
     <button data-tab="atmosfera" title="Atmosfera"><svg data-lucide="cloud-lightning"></svg></button>
     <button data-tab="mesa" title="Mesa"><svg data-lucide="dices"></svg></button>
+    <button data-tab="jogos" title="Jogos — Campo Minado, Forca, Batalha Naval, Sonoro"><svg data-lucide="gamepad-2"></svg></button>
     <button data-tab="tela" title="Tela do Jogador — Documentos, Puzzles, Mídia"><svg data-lucide="monitor"></svg></button>
     <button data-tab="sonoplastia" title="Sonoplastia — Trilha e Efeitos"><svg data-lucide="headphones"></svg></button>
     <button data-tab="resumo" title="Resumão"><svg data-lucide="notebook-pen"></svg></button>
@@ -1045,7 +1046,288 @@
 
   </div>
 
+  <div class="ribbonPanel" data-panel="jogos">
+
+    <div class="block">
+      <h2>📥 Importar Puzzles do Roteiro</h2>
+      <p class="hint">Carrega o 10-puzzles.json gerado pelo pipeline e preenche automaticamente o jogo certo pra cada dinâmica reconhecida.</p>
+      <input type="file" id="importPuzzlesInput" accept=".json,application/json" style="display:none;">
+      <button id="btnImportPuzzlesUpload" class="wide">Escolher 10-puzzles.json</button>
+      <div id="importPuzzlesLista" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="block">
+      <h2>🖼️ Papel de Parede dos Jogos</h2>
+      <p class="hint">Fundo mostrado atrás dos jogos na tela do jogador — deixa mais bonito que um fundo escuro liso. Vale pra qualquer sistema/tema, não só esse.</p>
+      <input type="file" id="jogosWallpaperInput" accept="image/*" style="display:none;">
+      <button id="btnJogosWallpaperUpload" class="wide">Escolher imagem de fundo</button>
+      <div id="jogosWallpaperPreview" style="display:none; margin-top:8px;">
+        <img id="jogosWallpaperImg" style="width:100%; border-radius:6px; border:1px solid var(--line);">
+      </div>
+      <div id="jogosWallpaperOpacidadeRow" class="row" style="display:none; margin-top:8px; align-items:center; gap:8px;">
+        <span class="hint" style="white-space:nowrap;">Opacidade</span>
+        <input type="range" id="jogosWallpaperOpacidade" min="0" max="100" value="100" style="flex:1;">
+        <span class="hint" id="jogosWallpaperOpacidadeValor" style="width:36px; text-align:right;">100%</span>
+      </div>
+      <button id="btnJogosWallpaperLimpar" class="wide danger" style="display:none;">Remover papel de parede</button>
+    </div>
+
+    <div class="block">
+      <h2>🪞 Mensagem Espelhada</h2>
+      <div class="row">
+        <input type="text" id="espelhoTexto" placeholder="Mensagem secreta" style="flex:1;">
+      </div>
+      <button id="btnEspelhoEnviar" class="wide">Enviar pra tela do jogador</button>
+      <button id="btnEspelhoFechar" class="wide danger">Fechar jogo</button>
+      <p class="hint">O texto aparece invertido na tela do jogador — só dá pra ler com espelho, ou segurando contra a luz numa janela/vidro.</p>
+    </div>
+
+    <div class="block">
+      <h2>🔢 Cadeado Numérico</h2>
+      <div class="row">
+        <label>Dígitos <input type="number" id="cadeadoDigitos" value="4" min="2" max="6" style="width:50px"></label>
+        <label>Código <input type="text" id="cadeadoCodigo" placeholder="ex: 3172" style="width:90px"></label>
+      </div>
+      <button id="btnCadeadoIniciar" class="wide">Iniciar</button>
+      <div id="cadeadoRodas" style="display:flex; gap:6px; margin-top:8px; justify-content:center;"></div>
+      <div class="row" style="margin-top:6px;">
+        <span class="hint" id="cadeadoStatus"></span>
+      </div>
+      <button id="btnCadeadoEnviar" class="wide">Enviar pra tela do jogador</button>
+      <button id="btnCadeadoFechar" class="wide danger">Fechar jogo</button>
+      <p class="hint">Clique nas setas pra girar cada roda — os jogadores tentam o código em voz alta, você ajusta ao vivo. Abre sozinho quando bater.</p>
+    </div>
+
+    <div class="block">
+      <h2>🔀 Anagrama</h2>
+      <div class="row">
+        <input type="text" id="anagramaPalavra" placeholder="Palavra ou frase secreta" style="flex:1;">
+      </div>
+      <button id="btnAnagramaEmbaralhar" class="wide">Embaralhar e iniciar</button>
+      <div id="anagramaPreviewMestre" class="hint" style="font-size:1.1rem; letter-spacing:3px; margin-top:8px; text-align:center;"></div>
+      <button id="btnAnagramaEnviar" class="wide">Enviar pra tela do jogador</button>
+      <button id="btnAnagramaRevelar" class="wide">Revelar resposta na tela do jogador</button>
+      <button id="btnAnagramaFechar" class="wide danger">Fechar jogo</button>
+    </div>
+
+    <div class="block">
+      <h2>🔐 Cifra / Código Secreto</h2>
+      <div class="row">
+        <input type="text" id="cifraTexto" placeholder="Mensagem original" style="flex:1;">
+      </div>
+      <div class="row">
+        <label>Deslocamento <input type="number" id="cifraDeslocamento" value="3" min="1" max="25" style="width:50px"></label>
+      </div>
+      <button id="btnCifraGerar" class="wide">Gerar cifra</button>
+      <div id="cifraPreviewMestre" class="hint" style="margin-top:8px;"></div>
+      <button id="btnCifraEnviar" class="wide">Enviar cifrado pra tela do jogador</button>
+      <button id="btnCifraRevelar" class="wide">Revelar mensagem decifrada</button>
+      <button id="btnCifraFechar" class="wide danger">Fechar jogo</button>
+      <p class="hint">Cada letra desloca N posições no alfabeto (cifra de César) — os jogadores recebem a legenda do alfabeto pra decifrar na unha, ou você revela quando quiser.</p>
+    </div>
+
+    <div class="block">
+      <h2>🎡 Roleta de Decisão</h2>
+      <p class="hint">Pra decisões narrativas grandes (final, destino de um NPC) — não use pra teste comum de perícia.</p>
+      <div id="roletaOpcoesLista"></div>
+      <button id="btnRoletaAddOpcao" class="wide">+ Adicionar opção</button>
+      <canvas id="roletaCanvasMestre" width="220" height="220" style="display:block; margin:10px auto;"></canvas>
+      <div class="row" style="align-items:center; gap:8px;">
+        <span class="hint" style="white-space:nowrap;">Duração do giro</span>
+        <input type="range" id="roletaDuracao" min="1" max="15" step="0.5" value="3" style="flex:1;">
+        <span class="hint" id="roletaDuracaoValor" style="width:38px; text-align:right;">3.0s</span>
+      </div>
+      <div class="row" style="align-items:center; gap:8px; margin-top:4px;">
+        <span class="hint" style="white-space:nowrap;">Intensidade (voltas)</span>
+        <input type="range" id="roletaIntensidade" min="1" max="15" step="1" value="4" style="flex:1;">
+        <span class="hint" id="roletaIntensidadeValor" style="width:38px; text-align:right;">4</span>
+      </div>
+      <button id="btnRoletaGirar" class="wide">🎡 Girar</button>
+      <div id="roletaResultado" class="hint" style="text-align:center; font-size:1.1rem; margin-top:6px;"></div>
+      <button id="btnRoletaEnviar" class="wide">Enviar pra tela do jogador</button>
+      <button id="btnRoletaFechar" class="wide danger">Fechar jogo</button>
+    </div>
+
+    <div class="block">
+      <h2>❓ Trivia em Cadeia</h2>
+      <p class="hint">Cada resposta certa libera a próxima pergunta, terminando numa palavra/código final.</p>
+      <div id="triviaPerguntasLista"></div>
+      <button id="btnTriviaAddPergunta" class="wide">+ Adicionar pergunta</button>
+      <input type="text" id="triviaCodigoFinal" placeholder="Código/palavra final (opcional)" style="width:100%; margin-top:6px;">
+      <button id="btnTriviaIniciar" class="wide">Iniciar</button>
+      <div id="triviaStatusMestre" class="hint" style="margin-top:6px;"></div>
+      <button id="btnTriviaProxima" class="wide">Próxima pergunta →</button>
+      <button id="btnTriviaFechar" class="wide danger">Fechar jogo</button>
+    </div>
+
+    <div class="block">
+      <h2>🧩 Sequência Lógica</h2>
+      <p class="hint">Itens na ordem CORRETA. Marque "isca" pra um item que aparece misturado mas NÃO faz parte da sequência certa — deixa mais difícil de propósito.</p>
+      <div id="seqItensLista"></div>
+      <button id="btnSeqAddItem" class="wide">+ Adicionar item</button>
+      <textarea id="seqPistas" placeholder="Pistas (opcional, uma por linha)" rows="3" style="width:100%; margin-top:6px;"></textarea>
+      <button id="btnSeqEmbaralhar" class="wide">Embaralhar e iniciar</button>
+      <button id="btnSeqEnviar" class="wide">Enviar pra tela do jogador</button>
+      <button id="btnSeqRevelar" class="wide">Revelar ordem correta</button>
+      <button id="btnSeqFechar" class="wide danger">Fechar jogo</button>
+    </div>
+
+    <div class="block">
+      <h2>🔎 Caça-palavras</h2>
+      <div class="row">
+        <textarea id="cpPalavras" placeholder="Palavras (uma por linha)" rows="4" style="width:100%;"></textarea>
+      </div>
+      <div class="row">
+        <label>Colunas <input type="number" id="cpCols" value="12" min="6" max="20" style="width:50px"></label>
+        <label>Linhas <input type="number" id="cpRows" value="10" min="6" max="20" style="width:50px"></label>
+      </div>
+      <button id="btnCpGerar" class="wide">Gerar caça-palavras</button>
+      <div id="cpGridMestre" style="margin-top:8px; overflow-x:auto;"></div>
+      <div id="cpChecklist" style="margin-top:8px; display:flex; flex-wrap:wrap; gap:4px;"></div>
+      <button id="btnCpEnviar" class="wide">Enviar pra tela do jogador</button>
+      <button id="btnCpFechar" class="wide danger">Fechar jogo</button>
+      <p class="hint">Clique numa palavra da lista pra marcar como encontrada — atualiza destacado na tela do jogador.</p>
+    </div>
+
+    <div class="block">
+      <h2>💣 Campo Minado</h2>
+      <div class="row">
+        <label>Colunas <input type="number" id="cmCols" value="5" min="3" max="8" style="width:50px"></label>
+        <label>Linhas <input type="number" id="cmRows" value="5" min="3" max="8" style="width:50px"></label>
+        <label>Minas <input type="number" id="cmMinas" value="5" min="1" max="20" style="width:50px"></label>
+      </div>
+      <button id="btnCmGerar" class="wide">Gerar tabuleiro</button>
+      <div id="cmGridMestre" style="margin-top:8px;"></div>
+      <div class="row" style="margin-top:6px;">
+        <span class="hint">Minas disparadas: <b id="cmContador">0</b></span>
+      </div>
+      <button id="btnCmEnviar" class="wide">Enviar pra tela do jogador</button>
+      <button id="btnCmFechar" class="wide danger">Fechar jogo</button>
+      <p class="hint">Clique nas casas da grade do mestre pra revelar (número de minas vizinhas) ou disparar (mina). O jogador só vê o que já foi revelado.</p>
+    </div>
+
+    <div class="block">
+      <h2>🔤 Jogo da Forca</h2>
+      <div class="row">
+        <input type="text" id="forcaPalavra" placeholder="Palavra secreta" style="flex:1;">
+      </div>
+      <button id="btnForcaIniciar" class="wide">Iniciar</button>
+      <div id="forcaLetras" style="margin-top:8px; display:flex; flex-wrap:wrap; gap:4px;"></div>
+      <div class="row" style="margin-top:6px;">
+        <span class="hint">Erros: <b id="forcaErros">0</b> / <span id="forcaMaxErros">6</span></span>
+      </div>
+      <div id="forcaPreview" class="hint" style="letter-spacing:4px; font-size:1.1rem; margin-top:6px;"></div>
+      <button id="btnForcaEnviar" class="wide">Enviar pra tela do jogador</button>
+      <button id="btnForcaFechar" class="wide danger">Fechar jogo</button>
+    </div>
+
+    <div class="block">
+      <h2>🚢 Batalha Naval</h2>
+      <div class="row">
+        <label>Colunas <input type="number" id="bnCols" value="6" min="3" max="10" style="width:50px"></label>
+        <label>Linhas <input type="number" id="bnRows" value="6" min="3" max="10" style="width:50px"></label>
+      </div>
+      <button id="btnBnGerar" class="wide">Gerar grade vazia</button>
+      <p class="hint">Clique nas casas abaixo pra marcar onde estão os "alvos" (navios/pontos de interesse) — isso é só o mestre vê.</p>
+      <div id="bnGridMestre" style="margin-top:8px;"></div>
+      <button id="btnBnEnviar" class="wide">Enviar pra tela do jogador</button>
+      <p class="hint">Depois de enviada, clique numa casa da grade acima pra marcar acerto/erro (o jogador chama a coordenada em voz alta, você clica a casa correspondente).</p>
+      <button id="btnBnFechar" class="wide danger">Fechar jogo</button>
+    </div>
+
+    <div class="block">
+      <h2>🎵 Jogo Sonoro</h2>
+      <div id="jsGridMestre" style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px;"></div>
+      <div class="row" style="margin-top:8px;">
+        <span class="hint">Rodada: <b id="jsRodada">0</b></span>
+      </div>
+      <button id="btnJsTocar" class="wide">▶ Tocar sequência</button>
+      <button id="btnJsAdicionar" class="wide">+ Adicionar rodada (crescer)</button>
+      <div class="row">
+        <button id="btnJsAcertou" style="flex:1;">✅ Grupo acertou</button>
+        <button id="btnJsErrou" style="flex:1;">❌ Grupo errou</button>
+      </div>
+      <button id="btnJsEnviar" class="wide">Enviar pra tela do jogador</button>
+      <button id="btnJsFechar" class="wide danger">Fechar jogo</button>
+      <p class="hint">Cada bloco tem um tom diferente. Toca no navegador do mestre; visual sincroniza na tela do jogador junto.</p>
+    </div>
+
+    <div class="block">
+      <h2>🔢 Sudoku Temático</h2>
+      <p class="hint">Grade 4×4 (caixas 2×2) — mesmo padrão do gerador de PDF do pipeline, rápido de jogar numa sessão.</p>
+      <div class="row">
+        <label>Dificuldade
+          <select id="sudokuDificuldade" style="width:120px;">
+            <option value="6">Fácil (6 vazias)</option>
+            <option value="9" selected>Média (9 vazias)</option>
+            <option value="12">Difícil (12 vazias)</option>
+          </select>
+        </label>
+      </div>
+      <input type="text" id="sudokuSimbolos" placeholder="4 símbolos separados por vírgula (opcional)" style="width:100%; margin-top:6px;">
+      <button id="btnSudokuGerar" class="wide">Gerar sudoku</button>
+      <div id="sudokuGridMestre" style="margin-top:8px;"></div>
+      <button id="btnSudokuEnviar" class="wide">Enviar pra tela do jogador</button>
+      <button id="btnSudokuRevelar" class="wide">Revelar solução completa</button>
+      <button id="btnSudokuFechar" class="wide danger">Fechar jogo</button>
+    </div>
+
+    <div class="block">
+      <h2>🌀 Labirinto Visual</h2>
+      <div class="row">
+        <label>Colunas <input type="number" id="labCols" value="10" min="5" max="20" style="width:50px"></label>
+        <label>Linhas <input type="number" id="labRows" value="8" min="5" max="20" style="width:50px"></label>
+      </div>
+      <button id="btnLabGerar" class="wide">Gerar labirinto</button>
+      <div id="labPreviewMestre" style="margin-top:8px; overflow-x:auto;"></div>
+      <button id="btnLabEnviar" class="wide">Enviar pra tela do jogador</button>
+      <button id="btnLabRevelar" class="wide">Revelar caminho na tela do jogador</button>
+      <button id="btnLabFechar" class="wide danger">Fechar jogo</button>
+      <p class="hint">Sempre gerado com caminho garantido da entrada (verde) até a saída (vermelha).</p>
+    </div>
+
+    <div class="block">
+      <h2>🧩 Jigsaw (Quebra-cabeça de Imagem)</h2>
+      <input type="file" id="jigsawInput" accept="image/*" style="display:none;">
+      <button id="btnJigsawUpload" class="wide">Escolher imagem</button>
+      <div class="row" style="margin-top:6px;">
+        <label>Peças <select id="jigsawTamanho" style="width:80px;">
+          <option value="3">3×3</option>
+          <option value="4" selected>4×4</option>
+          <option value="5">5×5</option>
+        </select></label>
+      </div>
+      <div id="jigsawPreview" style="display:none; margin-top:8px;">
+        <img id="jigsawImg" style="width:100%; border-radius:6px; border:1px solid var(--line);">
+      </div>
+      <button id="btnJigsawEmbaralhar" class="wide">Embaralhar e enviar pra tela do jogador</button>
+      <p class="hint">Na tela do jogador: clique em 2 peças pra trocar de lugar entre si. Repita até remontar a imagem.</p>
+      <button id="btnJigsawFechar" class="wide danger">Fechar jogo</button>
+    </div>
+
+    <div class="block">
+      <h2>✏️ Palavras Cruzadas</h2>
+      <div id="cruzadaListaPalavras"></div>
+      <button id="btnCruzadaAddPalavra" class="wide">+ Adicionar palavra + dica</button>
+      <button id="btnCruzadaGerar" class="wide">Gerar cruzadinha</button>
+      <div id="cruzadaGridMestre" style="margin-top:8px; overflow-x:auto;"></div>
+      <button id="btnCruzadaEnviar" class="wide">Enviar pra tela do jogador</button>
+      <button id="btnCruzadaRevelar" class="wide">Revelar todas as respostas</button>
+      <button id="btnCruzadaFechar" class="wide danger">Fechar jogo</button>
+      <p class="hint">Palavras que compartilham letras se cruzam automaticamente na grade.</p>
+    </div>
+
+  </div>
+
   <div class="ribbonPanel" data-panel="tela">
+
+    <div class="block" style="width:340px">
+      <h2>📥 Importar Documentos do Roteiro</h2>
+      <p class="hint">Carrega 06-documentos.json — documentos do tipo texto viram imagem pronta pra mostrar na tela do jogador automaticamente, sem precisar gerar/subir PDF nenhum.</p>
+      <input type="file" id="importDocumentosInput" accept=".json,application/json" style="display:none;">
+      <button id="btnImportDocumentosUpload" class="wide">Escolher 06-documentos.json</button>
+      <div id="docsComPromptContainer"></div>
+    </div>
 
     <div class="block" style="width:340px">
       <h2>📄 Documentos — mostrar na tela do jogador</h2>
@@ -1118,6 +1400,14 @@
   <div class="ribbonPanel" data-panel="sonoplastia">
 
     <div class="block" style="width:300px">
+      <h2>📥 Importar Sugestões do Roteiro</h2>
+      <p class="hint">Carrega 05-sonoplastia.json — mostra sugestões de busca por cena, com link já pronto pro YouTube.</p>
+      <input type="file" id="importSonoplastiaInput" accept=".json,application/json" style="display:none;">
+      <button id="btnImportSonoplastiaUpload" class="wide">Escolher 05-sonoplastia.json</button>
+    </div>
+    <div id="refSonoplastiaContainer"></div>
+
+    <div class="block" style="width:300px">
       <h2>🎵 Trilha Sonora</h2>
       <p class="hint">Música de fundo — tocar uma nova trilha pausa a anterior automaticamente. Loop ligado por padrão. Aceita YouTube, link direto (mp3, wav, ogg) ou arquivo do computador.</p>
       <div class="fieldGroup">
@@ -1179,6 +1469,18 @@
   </div>
 
   <div class="ribbonPanel" data-panel="referencia">
+
+    <div class="block" style="width:320px">
+      <h2>📥 Importar do Roteiro</h2>
+      <p class="hint">Carrega 09-improviso.json e/ou 04-cartografo.json do pipeline e monta referência rápida de mesa aqui.</p>
+      <input type="file" id="importImprovisoInput" accept=".json,application/json" style="display:none;">
+      <button id="btnImportImprovisoUpload" class="wide">Escolher 09-improviso.json</button>
+      <input type="file" id="importCartografoInput" accept=".json,application/json" style="display:none;">
+      <button id="btnImportCartografoUpload" class="wide">Escolher 04-cartografo.json</button>
+    </div>
+
+    <div id="refImprovisoContainer"></div>
+    <div id="refCartografoContainer"></div>
 
     <div class="block" style="width:280px">
       <h2>📋 Sumário de Estados</h2>
@@ -1379,9 +1681,10 @@
       chevron.addEventListener('click', e=>{ e.stopPropagation(); toggle(); });
       h2.addEventListener('click', toggle);
 
-      // Referência começa com tudo recolhido — 9 tabelas de uma vez seria
-      // demais pra ver de cara, melhor abrir só a que precisar no momento.
-      if(block.closest('.ribbonPanel[data-panel="referencia"]')) toggle();
+      // Todo bloco, em toda seção, começa recolhido — o mestre expande só
+      // a ferramenta que for usar naquele momento, sem precisar rolar a
+      // tela toda pra achar o que quer.
+      toggle();
     });
     safeCreateIcons();
   }
@@ -5622,6 +5925,2186 @@
   function escapeHtmlResumao(s){
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
+
+
+  // ============================================================
+  // JOGOS — minigames que aparecem na Tela do Jogador
+  // ============================================================
+
+  let jogosWallpaper = null; // data URL da imagem de fundo, ou null
+  let jogosWallpaperOpacidade = 1; // 0 a 1
+
+  function jogoGarantirContainer(){
+    if(!playerWin || playerWin.closed) return null;
+    let wrapper = playerWin.document.getElementById('jogoWrapper');
+    if(!wrapper){
+      playerWin.document.body.innerHTML =
+        '<div id="jogoWrapper" style="position:relative; width:100vw; height:100vh; overflow:hidden; background:#0c0d10;">' +
+          '<div id="jogoWallpaperLayer" style="position:absolute; inset:-20px; background-size:cover; background-position:center; filter:blur(12px);"></div>' +
+          '<div id="jogoContainer" style="position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; z-index:1;"></div>' +
+        '</div>';
+      wrapper = playerWin.document.getElementById('jogoWrapper');
+    }
+    const wallpaperLayer = playerWin.document.getElementById('jogoWallpaperLayer');
+    if(wallpaperLayer){
+      wallpaperLayer.style.backgroundImage = jogosWallpaper ? 'url(\'' + jogosWallpaper + '\')' : 'none';
+      wallpaperLayer.style.opacity = jogosWallpaperOpacidade;
+    }
+    return playerWin.document.getElementById('jogoContainer');
+  }
+
+  document.getElementById('btnJogosWallpaperUpload').addEventListener('click', function(){
+    document.getElementById('jogosWallpaperInput').click();
+  });
+  document.getElementById('jogosWallpaperInput').addEventListener('change', function(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      jogosWallpaper = ev.target.result;
+      document.getElementById('jogosWallpaperImg').src = jogosWallpaper;
+      document.getElementById('jogosWallpaperPreview').style.display = 'block';
+      document.getElementById('jogosWallpaperOpacidadeRow').style.display = 'flex';
+      document.getElementById('btnJogosWallpaperLimpar').style.display = 'block';
+      jogoGarantirContainer(); // reaplica o fundo se a tela do jogador ja estiver aberta
+      showNotif('🖼️ Papel de parede definido');
+    };
+    reader.readAsDataURL(file);
+  });
+  document.getElementById('jogosWallpaperOpacidade').addEventListener('input', function(e){
+    const pct = parseInt(e.target.value);
+    jogosWallpaperOpacidade = pct / 100;
+    document.getElementById('jogosWallpaperOpacidadeValor').textContent = pct + '%';
+    jogoGarantirContainer(); // reaplica ao vivo enquanto arrasta
+  });
+  document.getElementById('btnJogosWallpaperLimpar').addEventListener('click', function(){
+    jogosWallpaper = null;
+    jogosWallpaperOpacidade = 1;
+    document.getElementById('jogosWallpaperPreview').style.display = 'none';
+    document.getElementById('jogosWallpaperOpacidadeRow').style.display = 'none';
+    document.getElementById('jogosWallpaperOpacidade').value = 100;
+    document.getElementById('jogosWallpaperOpacidadeValor').textContent = '100%';
+    document.getElementById('btnJogosWallpaperLimpar').style.display = 'none';
+    document.getElementById('jogosWallpaperInput').value = '';
+    jogoGarantirContainer();
+    showNotif('🖼️ Papel de parede removido');
+  });
+
+  // ---------- CAMPO MINADO ----------
+  let cmState = null;
+
+  function cmVizinhas(c, l, cols, rows){
+    const result = [];
+    for(let dc=-1; dc<=1; dc++){
+      for(let dl=-1; dl<=1; dl++){
+        if(dc===0 && dl===0) continue;
+        const nc=c+dc, nl=l+dl;
+        if(nc>=0 && nc<cols && nl>=0 && nl<rows) result.push(nc+','+nl);
+      }
+    }
+    return result;
+  }
+
+  function cmGerar(){
+    const cols = parseInt(document.getElementById('cmCols').value) || 5;
+    const rows = parseInt(document.getElementById('cmRows').value) || 5;
+    const totalMinas = Math.min(parseInt(document.getElementById('cmMinas').value) || 5, cols*rows-1);
+    const todasCasas = [];
+    for(let c=0;c<cols;c++){ for(let l=0;l<rows;l++){ todasCasas.push(c+','+l); } }
+    for(let i=todasCasas.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      const tmp = todasCasas[i]; todasCasas[i]=todasCasas[j]; todasCasas[j]=tmp;
+    }
+    const minas = new Set(todasCasas.slice(0, totalMinas));
+    cmState = { cols:cols, rows:rows, minas:minas, revelado:new Map(), disparadas:0 };
+    cmRenderMestre();
+    document.getElementById('cmContador').textContent = '0';
+  }
+
+  function cmRenderMestre(){
+    if(!cmState) return;
+    const cols=cmState.cols, rows=cmState.rows, minas=cmState.minas, revelado=cmState.revelado;
+    let html = '<div style="display:grid; grid-template-columns:repeat('+cols+', 28px); gap:2px;">';
+    for(let l=0;l<rows;l++){
+      for(let c=0;c<cols;c++){
+        const key = c+','+l;
+        const isMina = minas.has(key);
+        const isRevelado = revelado.has(key);
+        let conteudo = '';
+        let bg = 'var(--btn-bg)';
+        if(isRevelado){
+          if(isMina){ conteudo='X'; bg='var(--rust)'; }
+          else { conteudo = String(revelado.get(key)); bg='var(--panel2)'; }
+        } else if(isMina){
+          bg = '#5c3a3a';
+        }
+        html += '<div class="cmCell" data-key="'+key+'" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:'+bg+';border:1px solid var(--line);cursor:pointer;font-size:.7rem;font-weight:bold;color:var(--ink);">'+conteudo+'</div>';
+      }
+    }
+    html += '</div>';
+    document.getElementById('cmGridMestre').innerHTML = html;
+    document.querySelectorAll('#cmGridMestre .cmCell').forEach(function(cell){
+      cell.addEventListener('click', function(){ cmClicar(cell.dataset.key); });
+    });
+  }
+
+  function cmClicar(key){
+    if(!cmState || cmState.revelado.has(key)) return;
+    const cols=cmState.cols, rows=cmState.rows, minas=cmState.minas, revelado=cmState.revelado;
+    if(minas.has(key)){
+      revelado.set(key, 'MINA');
+      cmState.disparadas++;
+      document.getElementById('cmContador').textContent = cmState.disparadas;
+      showNotif('💥 Mina disparada! Total: '+cmState.disparadas);
+    } else {
+      const partes = key.split(',');
+      const c = parseInt(partes[0]), l = parseInt(partes[1]);
+      const viz = cmVizinhas(c,l,cols,rows);
+      const n = viz.filter(function(v){ return minas.has(v); }).length;
+      revelado.set(key, n);
+    }
+    cmRenderMestre();
+    cmSyncPlayer();
+  }
+
+  function cmSyncPlayer(){
+    if(!cmState) return;
+    const cont = jogoGarantirContainer();
+    if(!cont) return;
+    const cols=cmState.cols, rows=cmState.rows, revelado=cmState.revelado;
+    let html = '<div style="display:grid; grid-template-columns:repeat('+cols+', 60px); gap:4px;">';
+    for(let l=0;l<rows;l++){
+      for(let c=0;c<cols;c++){
+        const key = c+','+l;
+        const isRevelado = revelado.has(key);
+        let conteudo = '';
+        let bg = '#2a2e38';
+        if(isRevelado){
+          const v = revelado.get(key);
+          if(v==='MINA'){ conteudo='💥'; bg='#8a3b2b'; }
+          else { conteudo = String(v); bg='#1b1e25'; }
+        }
+        html += '<div style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;background:'+bg+';border:2px solid #444;font-size:1.4rem;font-weight:bold;color:#e7e3da;border-radius:4px;">'+conteudo+'</div>';
+      }
+    }
+    html += '</div>';
+    cont.innerHTML = html;
+  }
+
+  document.getElementById('btnCmGerar').addEventListener('click', cmGerar);
+  document.getElementById('btnCmEnviar').addEventListener('click', function(){
+    if(!cmState){ showNotif('⚠️ Gere o tabuleiro primeiro.'); return; }
+    cmSyncPlayer();
+    showNotif('💣 Campo Minado enviado pra tela do jogador');
+  });
+  document.getElementById('btnCmFechar').addEventListener('click', function(){
+    const cont = jogoGarantirContainer();
+    if(cont) cont.innerHTML = '';
+  });
+
+  // ---------- JOGO DA FORCA ----------
+  let forcaState = null;
+
+  function forcaMontarLetras(){
+    const alfabeto = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let html = '';
+    for(let i=0;i<alfabeto.length;i++){
+      const letra = alfabeto[i];
+      html += '<button class="forcaLetraBtn" data-letra="'+letra+'" style="width:30px;height:30px;padding:0;">'+letra+'</button>';
+    }
+    document.getElementById('forcaLetras').innerHTML = html;
+    document.querySelectorAll('.forcaLetraBtn').forEach(function(btn){
+      btn.addEventListener('click', function(){ forcaChutar(btn.dataset.letra); });
+    });
+  }
+  forcaMontarLetras();
+
+  function forcaIniciar(){
+    const palavra = (document.getElementById('forcaPalavra').value || '').toUpperCase().trim();
+    if(!palavra){ showNotif('⚠️ Digite uma palavra primeiro.'); return; }
+    forcaState = { palavra:palavra, chutadas:new Set(), erros:0, maxErros:6 };
+    document.getElementById('forcaErros').textContent = '0';
+    forcaAtualizarPreview();
+    document.querySelectorAll('.forcaLetraBtn').forEach(function(btn){ btn.disabled=false; btn.style.background=''; });
+    showNotif('🔤 Forca iniciada');
+  }
+
+  function forcaChutar(letra){
+    if(!forcaState) return;
+    if(forcaState.chutadas.has(letra)) return;
+    forcaState.chutadas.add(letra);
+    const btn = document.querySelector('.forcaLetraBtn[data-letra="'+letra+'"]');
+    const acertou = forcaState.palavra.indexOf(letra) !== -1;
+    if(!acertou){
+      forcaState.erros++;
+      document.getElementById('forcaErros').textContent = forcaState.erros;
+      if(btn){ btn.style.background='var(--rust)'; }
+    } else {
+      if(btn){ btn.style.background='var(--sick)'; }
+    }
+    if(btn) btn.disabled = true;
+    forcaAtualizarPreview();
+    forcaSyncPlayer();
+  }
+
+  function forcaAtualizarPreview(){
+    if(!forcaState) return;
+    const display = forcaState.palavra.split('').map(function(ch){
+      if(ch===' ') return '  ';
+      return forcaState.chutadas.has(ch) ? ch : '_';
+    }).join(' ');
+    document.getElementById('forcaPreview').textContent = display;
+  }
+
+  const FORCA_ESTAGIOS = ['🙂','😐','😟','😰','😨','😱','💀'];
+
+  function forcaSyncPlayer(){
+    if(!forcaState) return;
+    const cont = jogoGarantirContainer();
+    if(!cont) return;
+    const display = forcaState.palavra.split('').map(function(ch){
+      if(ch===' ') return '&nbsp;&nbsp;';
+      return forcaState.chutadas.has(ch) ? ch : '_';
+    }).join(' ');
+    const erradas = [];
+    forcaState.chutadas.forEach(function(l){ if(forcaState.palavra.indexOf(l)===-1) erradas.push(l); });
+    const estagio = FORCA_ESTAGIOS[Math.min(forcaState.erros, FORCA_ESTAGIOS.length-1)];
+    cont.innerHTML =
+      '<div style="text-align:center; color:#e7e3da; font-family:sans-serif;">'+
+      '<div style="font-size:4rem; margin-bottom:20px;">'+estagio+'</div>'+
+      '<div style="font-size:3rem; letter-spacing:12px; font-weight:bold;">'+display+'</div>'+
+      '<div style="margin-top:24px; font-size:1.2rem; opacity:.7;">Erros: '+forcaState.erros+' / '+forcaState.maxErros+'</div>'+
+      '<div style="margin-top:12px; font-size:1.1rem; opacity:.6;">Tentadas erradas: '+erradas.join(', ')+'</div>'+
+      '</div>';
+  }
+
+  document.getElementById('btnForcaIniciar').addEventListener('click', forcaIniciar);
+  document.getElementById('btnForcaEnviar').addEventListener('click', function(){
+    if(!forcaState){ showNotif('⚠️ Inicie o jogo primeiro.'); return; }
+    forcaSyncPlayer();
+    showNotif('🔤 Forca enviada pra tela do jogador');
+  });
+  document.getElementById('btnForcaFechar').addEventListener('click', function(){
+    const cont = jogoGarantirContainer();
+    if(cont) cont.innerHTML = '';
+  });
+
+  // ---------- BATALHA NAVAL ----------
+  let bnState = null;
+
+  function bnGerar(){
+    const cols = parseInt(document.getElementById('bnCols').value) || 6;
+    const rows = parseInt(document.getElementById('bnRows').value) || 6;
+    bnState = { cols:cols, rows:rows, alvos:new Set(), marcado:new Map(), enviado:false };
+    bnRenderMestre();
+  }
+
+  function bnRenderMestre(){
+    if(!bnState) return;
+    const cols=bnState.cols, rows=bnState.rows, alvos=bnState.alvos, marcado=bnState.marcado;
+    let html = '<div style="display:grid; grid-template-columns:repeat('+cols+', 28px); gap:2px;">';
+    for(let l=0;l<rows;l++){
+      for(let c=0;c<cols;c++){
+        const key = c+','+l;
+        const isAlvo = alvos.has(key);
+        const isMarcado = marcado.has(key);
+        let bg = 'var(--btn-bg)';
+        let conteudo = '';
+        if(isMarcado){
+          if(marcado.get(key)==='acerto'){ bg='var(--sick)'; conteudo='●'; }
+          else { bg='var(--panel2)'; conteudo='○'; }
+        } else if(isAlvo){
+          bg = '#2f6f8f';
+        }
+        html += '<div class="bnCell" data-key="'+key+'" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:'+bg+';border:1px solid var(--line);cursor:pointer;font-size:.75rem;color:var(--ink);">'+conteudo+'</div>';
+      }
+    }
+    html += '</div>';
+    document.getElementById('bnGridMestre').innerHTML = html;
+    document.querySelectorAll('#bnGridMestre .bnCell').forEach(function(cell){
+      cell.addEventListener('click', function(){ bnClicar(cell.dataset.key); });
+    });
+  }
+
+  function bnClicar(key){
+    if(!bnState) return;
+    if(!bnState.enviado){
+      if(bnState.alvos.has(key)) bnState.alvos.delete(key);
+      else bnState.alvos.add(key);
+      bnRenderMestre();
+      return;
+    }
+    if(bnState.marcado.has(key)) return;
+    const acertou = bnState.alvos.has(key);
+    bnState.marcado.set(key, acertou ? 'acerto' : 'erro');
+    bnRenderMestre();
+    bnSyncPlayer();
+    showNotif(acertou ? '🎯 Acertou!' : '💧 Água...');
+  }
+
+  function bnSyncPlayer(){
+    if(!bnState) return;
+    const cont = jogoGarantirContainer();
+    if(!cont) return;
+    const cols=bnState.cols, rows=bnState.rows, marcado=bnState.marcado;
+    let html = '<div style="display:grid; grid-template-columns:repeat('+cols+', 60px); gap:4px;">';
+    for(let l=0;l<rows;l++){
+      for(let c=0;c<cols;c++){
+        const key = c+','+l;
+        let bg = '#2a2e38';
+        let conteudo = '';
+        if(marcado.has(key)){
+          if(marcado.get(key)==='acerto'){ bg='#5c7a63'; conteudo='🎯'; }
+          else { bg='#1b1e25'; conteudo='💧'; }
+        }
+        html += '<div style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;background:'+bg+';border:2px solid #444;font-size:1.3rem;border-radius:4px;">'+conteudo+'</div>';
+      }
+    }
+    html += '</div>';
+    cont.innerHTML = html;
+  }
+
+  document.getElementById('btnBnGerar').addEventListener('click', bnGerar);
+  document.getElementById('btnBnEnviar').addEventListener('click', function(){
+    if(!bnState){ showNotif('⚠️ Gere a grade primeiro.'); return; }
+    bnState.enviado = true;
+    bnSyncPlayer();
+    showNotif('🚢 Batalha Naval enviada pra tela do jogador');
+  });
+  document.getElementById('btnBnFechar').addEventListener('click', function(){
+    const cont = jogoGarantirContainer();
+    if(cont) cont.innerHTML = '';
+  });
+
+  // ---------- JOGO SONORO ----------
+  const JS_TONS = [
+    { freq:261.63, cor:'#8a3b2b' },
+    { freq:329.63, cor:'#2f6f8f' },
+    { freq:392.00, cor:'#3f6b2f' },
+    { freq:523.25, cor:'#c79a4b' }
+  ];
+
+  let jsState = { sequencia:[], rodada:0 };
+  let jsAudioCtx = null;
+
+  function jsGetAudioCtx(){
+    if(!jsAudioCtx){
+      try{ jsAudioCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ jsAudioCtx = null; }
+    }
+    return jsAudioCtx;
+  }
+
+  function jsTocarTom(freq, duracaoMs){
+    const ctx = jsGetAudioCtx();
+    if(!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duracaoMs/1000);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + duracaoMs/1000);
+  }
+
+  function jsRenderMestre(){
+    let html = '';
+    for(let i=0;i<JS_TONS.length;i++){
+      const tom = JS_TONS[i];
+      html += '<button class="jsTile" data-i="'+i+'" style="height:60px;background:'+tom.cor+';border:2px solid var(--line);border-radius:8px;cursor:pointer;"></button>';
+    }
+    document.getElementById('jsGridMestre').innerHTML = html;
+    document.querySelectorAll('.jsTile').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        const i = parseInt(btn.dataset.i);
+        jsTocarTom(JS_TONS[i].freq, 300);
+        jsFlashTile(i, true);
+      });
+    });
+  }
+  jsRenderMestre();
+
+  function jsFlashTile(i, tambemPlayer){
+    const btn = document.querySelector('.jsTile[data-i="'+i+'"]');
+    if(btn){
+      btn.style.filter = 'brightness(1.8)';
+      setTimeout(function(){ btn.style.filter = ''; }, 250);
+    }
+    if(tambemPlayer) jsFlashPlayerTile(i);
+  }
+
+  function jsFlashPlayerTile(i){
+    if(!playerWin || playerWin.closed) return;
+    const el = playerWin.document.getElementById('jsTileP'+i);
+    if(el){
+      el.style.filter = 'brightness(1.8)';
+      setTimeout(function(){ if(el) el.style.filter = ''; }, 250);
+    }
+  }
+
+  function jsAdicionarRodada(){
+    const i = Math.floor(Math.random()*JS_TONS.length);
+    jsState.sequencia.push(i);
+    jsState.rodada = jsState.sequencia.length;
+    document.getElementById('jsRodada').textContent = jsState.rodada;
+    showNotif('🎵 Rodada '+jsState.rodada);
+  }
+
+  function jsTocarSequencia(){
+    let idx = 0;
+    function proximo(){
+      if(idx >= jsState.sequencia.length) return;
+      const i = jsState.sequencia[idx];
+      jsTocarTom(JS_TONS[i].freq, 350);
+      jsFlashTile(i, true);
+      idx++;
+      setTimeout(proximo, 550);
+    }
+    proximo();
+  }
+
+  function jsSyncPlayer(){
+    const cont = jogoGarantirContainer();
+    if(!cont) return;
+    let html = '<div style="text-align:center;">';
+    html += '<div style="color:#e7e3da; font-size:1.3rem; margin-bottom:16px; font-family:sans-serif;">Rodada '+jsState.rodada+'</div>';
+    html += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; width:320px;">';
+    for(let i=0;i<JS_TONS.length;i++){
+      const tom = JS_TONS[i];
+      html += '<div id="jsTileP'+i+'" style="height:120px;background:'+tom.cor+';border-radius:12px; transition:filter .1s;"></div>';
+    }
+    html += '</div></div>';
+    cont.innerHTML = html;
+  }
+
+  document.getElementById('btnJsAdicionar').addEventListener('click', jsAdicionarRodada);
+  document.getElementById('btnJsTocar').addEventListener('click', jsTocarSequencia);
+  document.getElementById('btnJsAcertou').addEventListener('click', function(){ showNotif('✅ Rodada '+jsState.rodada+' — acertaram!'); });
+  document.getElementById('btnJsErrou').addEventListener('click', function(){ showNotif('❌ Errou na rodada '+jsState.rodada); });
+  document.getElementById('btnJsEnviar').addEventListener('click', function(){
+    jsSyncPlayer();
+    showNotif('🎵 Jogo Sonoro enviado pra tela do jogador');
+  });
+  document.getElementById('btnJsFechar').addEventListener('click', function(){
+    const cont = jogoGarantirContainer();
+    if(cont) cont.innerHTML = '';
+  });
+
+
+  // ---------- Helper de escape (reaproveitado nos jogos novos) ----------
+  function jogosEscapeHtml(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ---------- MENSAGEM ESPELHADA ----------
+  document.getElementById('btnEspelhoEnviar').addEventListener('click', function(){
+    const texto = document.getElementById('espelhoTexto').value;
+    if(!texto){ showNotif('⚠️ Digite uma mensagem primeiro.'); return; }
+    const cont = jogoGarantirContainer();
+    if(!cont) return;
+    cont.innerHTML = '<div style="transform:scaleX(-1); color:#e7e3da; font-size:3rem; font-family:serif; text-align:center; padding:40px; max-width:90vw;">'+jogosEscapeHtml(texto)+'</div>';
+    showNotif('🪞 Mensagem espelhada enviada');
+  });
+  document.getElementById('btnEspelhoFechar').addEventListener('click', function(){
+    const cont = jogoGarantirContainer();
+    if(cont) cont.innerHTML = '';
+  });
+
+  // ---------- CADEADO NUMÉRICO ----------
+  let cadeadoState = null;
+
+  function cadeadoIniciar(){
+    const digitos = parseInt(document.getElementById('cadeadoDigitos').value) || 4;
+    const codigo = (document.getElementById('cadeadoCodigo').value || '').trim();
+    if(codigo.length !== digitos || !/^\d+$/.test(codigo)){
+      showNotif('⚠️ Código precisa ter exatamente '+digitos+' dígitos numéricos.');
+      return;
+    }
+    cadeadoState = { digitos:digitos, codigo:codigo, atual:new Array(digitos).fill(0) };
+    cadeadoRenderMestre();
+    document.getElementById('cadeadoStatus').textContent = '';
+  }
+
+  function cadeadoRenderMestre(){
+    if(!cadeadoState) return;
+    let html = '';
+    for(let i=0;i<cadeadoState.digitos;i++){
+      html += '<div style="display:flex; flex-direction:column; align-items:center; gap:2px;">'+
+        '<button class="cadeadoUp" data-i="'+i+'" style="width:30px;height:24px;padding:0;">▲</button>'+
+        '<div style="width:30px;height:36px;display:flex;align-items:center;justify-content:center;background:var(--panel2);border:1px solid var(--line);font-size:1.2rem;font-weight:bold;">'+cadeadoState.atual[i]+'</div>'+
+        '<button class="cadeadoDown" data-i="'+i+'" style="width:30px;height:24px;padding:0;">▼</button>'+
+        '</div>';
+    }
+    document.getElementById('cadeadoRodas').innerHTML = html;
+    document.querySelectorAll('.cadeadoUp').forEach(function(btn){
+      btn.addEventListener('click', function(){ cadeadoGirar(parseInt(btn.dataset.i), 1); });
+    });
+    document.querySelectorAll('.cadeadoDown').forEach(function(btn){
+      btn.addEventListener('click', function(){ cadeadoGirar(parseInt(btn.dataset.i), -1); });
+    });
+  }
+
+  function cadeadoGirar(i, delta){
+    if(!cadeadoState) return;
+    cadeadoState.atual[i] = (cadeadoState.atual[i] + delta + 10) % 10;
+    cadeadoRenderMestre();
+    cadeadoSyncPlayer();
+    const atualStr = cadeadoState.atual.join('');
+    if(atualStr === cadeadoState.codigo){
+      document.getElementById('cadeadoStatus').textContent = '🔓 ABERTO!';
+      showNotif('🔓 Cadeado aberto!');
+    } else {
+      document.getElementById('cadeadoStatus').textContent = '';
+    }
+  }
+
+  function cadeadoSyncPlayer(){
+    if(!cadeadoState) return;
+    const cont = jogoGarantirContainer();
+    if(!cont) return;
+    const atualStr = cadeadoState.atual.join('');
+    const aberto = atualStr === cadeadoState.codigo;
+    let html = '<div style="text-align:center;">';
+    html += '<div style="display:flex; gap:10px; justify-content:center;">';
+    for(let i=0;i<cadeadoState.digitos;i++){
+      html += '<div style="width:70px;height:90px;display:flex;align-items:center;justify-content:center;background:'+(aberto?'#5c7a63':'#1b1e25')+';border:3px solid #444;border-radius:8px;font-size:2.5rem;font-weight:bold;color:#e7e3da;">'+cadeadoState.atual[i]+'</div>';
+    }
+    html += '</div>';
+    if(aberto) html += '<div style="margin-top:20px; font-size:2rem; color:#5c7a63;">🔓 ABERTO</div>';
+    html += '</div>';
+    cont.innerHTML = html;
+  }
+
+  document.getElementById('btnCadeadoIniciar').addEventListener('click', cadeadoIniciar);
+  document.getElementById('btnCadeadoEnviar').addEventListener('click', function(){
+    if(!cadeadoState){ showNotif('⚠️ Inicie o cadeado primeiro.'); return; }
+    cadeadoSyncPlayer();
+    showNotif('🔢 Cadeado enviado pra tela do jogador');
+  });
+  document.getElementById('btnCadeadoFechar').addEventListener('click', function(){
+    const cont = jogoGarantirContainer();
+    if(cont) cont.innerHTML = '';
+  });
+
+  // ---------- ANAGRAMA ----------
+  let anagramaState = null;
+
+  function anagramaEmbaralharTexto(txt){
+    return txt.split(' ').map(function(palavra){
+      const letras = palavra.split('');
+      for(let i=letras.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        const tmp = letras[i]; letras[i]=letras[j]; letras[j]=tmp;
+      }
+      return letras.join('');
+    }).join(' ');
+  }
+
+  function anagramaIniciar(){
+    const palavra = (document.getElementById('anagramaPalavra').value || '').trim();
+    if(!palavra){ showNotif('⚠️ Digite uma palavra ou frase primeiro.'); return; }
+    const original = palavra.toUpperCase();
+    let embaralhado = anagramaEmbaralharTexto(original);
+    let tentativas = 0;
+    while(embaralhado === original && tentativas < 10){
+      embaralhado = anagramaEmbaralharTexto(original);
+      tentativas++;
+    }
+    anagramaState = { original: original, embaralhado: embaralhado };
+    document.getElementById('anagramaPreviewMestre').textContent = embaralhado;
+    showNotif('🔀 Anagrama gerado');
+  }
+
+  document.getElementById('btnAnagramaEmbaralhar').addEventListener('click', anagramaIniciar);
+  document.getElementById('btnAnagramaEnviar').addEventListener('click', function(){
+    if(!anagramaState){ showNotif('⚠️ Embaralhe uma palavra primeiro.'); return; }
+    const cont = jogoGarantirContainer();
+    if(!cont) return;
+    cont.innerHTML = '<div style="text-align:center; color:#e7e3da; font-family:sans-serif;">'+
+      '<div style="font-size:3.5rem; letter-spacing:8px; font-weight:bold;">'+jogosEscapeHtml(anagramaState.embaralhado)+'</div>'+
+      '</div>';
+    showNotif('🔀 Anagrama enviado pra tela do jogador');
+  });
+  document.getElementById('btnAnagramaRevelar').addEventListener('click', function(){
+    if(!anagramaState){ showNotif('⚠️ Nenhum anagrama ativo.'); return; }
+    const cont = jogoGarantirContainer();
+    if(!cont) return;
+    cont.innerHTML = '<div style="text-align:center; color:#e7e3da; font-family:sans-serif;">'+
+      '<div style="font-size:1.3rem; opacity:.6; margin-bottom:12px;">Resposta:</div>'+
+      '<div style="font-size:3.5rem; letter-spacing:8px; font-weight:bold; color:#c79a4b;">'+jogosEscapeHtml(anagramaState.original)+'</div>'+
+      '</div>';
+  });
+  document.getElementById('btnAnagramaFechar').addEventListener('click', function(){
+    const cont = jogoGarantirContainer();
+    if(cont) cont.innerHTML = '';
+  });
+
+  // ---------- CIFRA / CÓDIGO SECRETO ----------
+  let cifraState = null;
+
+  function cifraCodificar(texto, deslocamento){
+    return texto.toUpperCase().split('').map(function(ch){
+      const code = ch.charCodeAt(0);
+      if(code >= 65 && code <= 90){
+        return String.fromCharCode(((code - 65 + deslocamento) % 26) + 65);
+      }
+      return ch;
+    }).join('');
+  }
+
+  function cifraGerarLegenda(deslocamento){
+    const alfabeto = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let linha1 = '', linha2 = '';
+    for(let i=0;i<26;i++){
+      linha1 += alfabeto[i] + ' ';
+      linha2 += alfabeto[(i+deslocamento)%26] + ' ';
+    }
+    return { original: linha1.trim(), cifrado: linha2.trim() };
+  }
+
+  function cifraGerar(){
+    const texto = (document.getElementById('cifraTexto').value || '').trim();
+    const deslocamento = parseInt(document.getElementById('cifraDeslocamento').value) || 3;
+    if(!texto){ showNotif('⚠️ Digite uma mensagem primeiro.'); return; }
+    const cifrado = cifraCodificar(texto, deslocamento);
+    cifraState = { original: texto.toUpperCase(), cifrado: cifrado, deslocamento: deslocamento };
+    document.getElementById('cifraPreviewMestre').innerHTML = '<b>Cifrado:</b> '+jogosEscapeHtml(cifrado);
+    showNotif('🔐 Cifra gerada');
+  }
+
+  document.getElementById('btnCifraGerar').addEventListener('click', cifraGerar);
+  document.getElementById('btnCifraEnviar').addEventListener('click', function(){
+    if(!cifraState){ showNotif('⚠️ Gere a cifra primeiro.'); return; }
+    const cont = jogoGarantirContainer();
+    if(!cont) return;
+    const legenda = cifraGerarLegenda(cifraState.deslocamento);
+    cont.innerHTML = '<div style="text-align:center; color:#e7e3da; font-family:monospace;">'+
+      '<div style="font-size:2.2rem; letter-spacing:4px; font-weight:bold; margin-bottom:30px; word-break:break-word; max-width:80vw;">'+jogosEscapeHtml(cifraState.cifrado)+'</div>'+
+      '<div style="font-size:.9rem; opacity:.5; margin-bottom:6px;">'+jogosEscapeHtml(legenda.original)+'</div>'+
+      '<div style="font-size:.9rem; opacity:.8;">'+jogosEscapeHtml(legenda.cifrado)+'</div>'+
+      '</div>';
+    showNotif('🔐 Cifra enviada pra tela do jogador');
+  });
+  document.getElementById('btnCifraRevelar').addEventListener('click', function(){
+    if(!cifraState){ showNotif('⚠️ Nenhuma cifra ativa.'); return; }
+    const cont = jogoGarantirContainer();
+    if(!cont) return;
+    cont.innerHTML = '<div style="text-align:center; color:#e7e3da; font-family:sans-serif;">'+
+      '<div style="font-size:1.2rem; opacity:.6; margin-bottom:16px;">Mensagem decifrada:</div>'+
+      '<div style="font-size:2.5rem; font-weight:bold; color:#c79a4b; max-width:80vw;">'+jogosEscapeHtml(cifraState.original)+'</div>'+
+      '</div>';
+  });
+  document.getElementById('btnCifraFechar').addEventListener('click', function(){
+    const cont = jogoGarantirContainer();
+    if(cont) cont.innerHTML = '';
+  });
+
+
+  function jogosRemoverAcentos(s){
+    return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  }
+
+  // ---------- ROLETA DE DECISÃO ----------
+  let roletaOpcoes = [];
+  let roletaAnguloAtual = 0;
+
+  function roletaRenderLista(){
+    let html = '';
+    roletaOpcoes.forEach(function(op, i){
+      html += '<div class="row" style="margin-top:4px;">'+
+        '<input type="text" class="roletaNome" data-i="'+i+'" value="'+jogosEscapeHtml(op.nome)+'" placeholder="Opção" style="flex:1;">'+
+        '<input type="number" class="roletaPeso" data-i="'+i+'" value="'+op.peso+'" min="1" style="width:50px;">'+
+        '<button class="roletaRemover" data-i="'+i+'" style="width:30px; padding:0;">✕</button>'+
+        '</div>';
+    });
+    document.getElementById('roletaOpcoesLista').innerHTML = html;
+    document.querySelectorAll('.roletaNome').forEach(function(inp){
+      inp.addEventListener('input', function(){ roletaOpcoes[parseInt(inp.dataset.i)].nome = inp.value; roletaDesenharMestre(); });
+    });
+    document.querySelectorAll('.roletaPeso').forEach(function(inp){
+      inp.addEventListener('input', function(){ roletaOpcoes[parseInt(inp.dataset.i)].peso = parseInt(inp.value)||1; roletaDesenharMestre(); });
+    });
+    document.querySelectorAll('.roletaRemover').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        roletaOpcoes.splice(parseInt(btn.dataset.i),1);
+        roletaRenderLista();
+        roletaDesenharMestre();
+      });
+    });
+  }
+
+  function roletaAddOpcao(){
+    if(roletaOpcoes.length >= 8){ showNotif('⚠️ Máximo de 8 opções.'); return; }
+    roletaOpcoes.push({ nome: 'Opção '+(roletaOpcoes.length+1), peso: 1 });
+    roletaRenderLista();
+    roletaDesenharMestre();
+  }
+
+  const ROLETA_CORES = ['#8a3b2b','#2f6f8f','#3f6b2f','#c79a4b','#6b4a8a','#a83f5f','#4a7a7a','#8a6a2f'];
+
+  function roletaCalcularFatias(){
+    const total = roletaOpcoes.reduce(function(s,o){ return s+o.peso; }, 0);
+    let anguloAtual = -90; // comeca no topo
+    return roletaOpcoes.map(function(op, i){
+      const anguloFatia = 360 * op.peso / total;
+      const fatia = { nome: op.nome, inicio: anguloAtual, fim: anguloAtual+anguloFatia, cor: ROLETA_CORES[i%ROLETA_CORES.length] };
+      anguloAtual += anguloFatia;
+      return fatia;
+    });
+  }
+
+  function roletaDesenharEmCanvas(canvas, fatias, rotacaoExtra){
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    const cx = w/2, cy = h/2, raio = Math.min(w,h)/2 - 4;
+    ctx.clearRect(0,0,w,h);
+    ctx.save();
+    ctx.translate(cx,cy);
+    ctx.rotate((rotacaoExtra||0) * Math.PI/180);
+    ctx.translate(-cx,-cy);
+    fatias.forEach(function(f){
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,raio, f.inicio*Math.PI/180, f.fim*Math.PI/180);
+      ctx.closePath();
+      ctx.fillStyle = f.cor;
+      ctx.fill();
+      ctx.strokeStyle = '#15171c';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      // texto
+      const meio = (f.inicio+f.fim)/2 * Math.PI/180;
+      const tx = cx + Math.cos(meio)*raio*0.62;
+      const ty = cy + Math.sin(meio)*raio*0.62;
+      ctx.save();
+      ctx.translate(tx,ty);
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(f.nome.slice(0,10), 0, 0);
+      ctx.restore();
+    });
+    ctx.restore();
+    // ponteiro fixo no topo
+    ctx.beginPath();
+    ctx.moveTo(cx-8, 6);
+    ctx.lineTo(cx+8, 6);
+    ctx.lineTo(cx, 24);
+    ctx.closePath();
+    ctx.fillStyle = '#c79a4b';
+    ctx.fill();
+  }
+
+  function roletaDesenharMestre(){
+    if(roletaOpcoes.length < 2) return;
+    const fatias = roletaCalcularFatias();
+    const canvas = document.getElementById('roletaCanvasMestre');
+    roletaDesenharEmCanvas(canvas, fatias, roletaAnguloAtual);
+  }
+
+  function roletaSortear(){
+    const total = roletaOpcoes.reduce(function(s,o){ return s+o.peso; }, 0);
+    let r = Math.random()*total;
+    for(let i=0;i<roletaOpcoes.length;i++){
+      r -= roletaOpcoes[i].peso;
+      if(r <= 0) return i;
+    }
+    return roletaOpcoes.length-1;
+  }
+
+  function roletaGirar(){
+    if(roletaOpcoes.length < 2){ showNotif('⚠️ Adicione ao menos 2 opções.'); return; }
+    const duracao = parseFloat(document.getElementById('roletaDuracao').value) * 1000;
+    const fatias = roletaCalcularFatias();
+    const vencedorIdx = roletaSortear();
+    const fatiaVencedora = fatias[vencedorIdx];
+    const meioVencedora = (fatiaVencedora.inicio + fatiaVencedora.fim)/2;
+    // alvo absoluto: angulo de rotacao (a partir da posicao ORIGINAL, nao-rotacionada)
+    // que traz o meio da fatia vencedora pro ponteiro fixo no topo (-90).
+    const alvoAbsoluto = (-90 - meioVencedora + 3600) % 360;
+    // delta pra sair de onde a roleta esta agora ate esse alvo (sempre pra frente,
+    // nunca soma o angulo atual duas vezes por cima do alvo absoluto).
+    const deltaNecessario = (alvoAbsoluto - roletaAnguloAtual + 3600) % 360;
+    // intensidade (quantas voltas extra) controlada direto pelo mestre, sem
+    // depender da duracao — dá pra ter giro rapido e intenso, ou lento e suave.
+    const voltasExtra = parseInt(document.getElementById('roletaIntensidade').value) || 4;
+    const rotacaoFinal = roletaAnguloAtual + deltaNecessario + 360*voltasExtra;
+
+    const canvasMestre = document.getElementById('roletaCanvasMestre');
+    const inicioAnim = performance.now();
+    const anguloInicial = roletaAnguloAtual;
+
+    function animar(agora){
+      const t = Math.min(1, (agora-inicioAnim)/duracao);
+      const easeOut = 1 - Math.pow(1-t, 3);
+      const anguloAtualAnim = anguloInicial + (rotacaoFinal-anguloInicial)*easeOut;
+      roletaDesenharEmCanvas(canvasMestre, fatias, anguloAtualAnim);
+      roletaSyncPlayerFrame(fatias, anguloAtualAnim);
+      if(t < 1){
+        requestAnimationFrame(animar);
+      } else {
+        roletaAnguloAtual = rotacaoFinal % 360;
+        document.getElementById('roletaResultado').textContent = '🎯 ' + fatiaVencedora.nome;
+        roletaSyncPlayerFrame(fatias, roletaAnguloAtual, fatiaVencedora.nome);
+        showNotif('🎡 Resultado: '+fatiaVencedora.nome);
+      }
+    }
+    requestAnimationFrame(animar);
+  }
+
+  function roletaSyncPlayerFrame(fatias, angulo, resultadoFinal){
+    const cont = jogoGarantirContainer();
+    if(!cont) return;
+    let canvasP = playerWin.document.getElementById('roletaCanvasPlayer');
+    if(!canvasP){
+      cont.innerHTML = '<div style="text-align:center;"><canvas id="roletaCanvasPlayer" width="420" height="420"></canvas><div id="roletaResultadoPlayer" style="color:#e7e3da; font-size:1.8rem; margin-top:16px; font-family:sans-serif;"></div></div>';
+      canvasP = playerWin.document.getElementById('roletaCanvasPlayer');
+    }
+    roletaDesenharEmCanvas(canvasP, fatias, angulo);
+    if(resultadoFinal){
+      playerWin.document.getElementById('roletaResultadoPlayer').textContent = '🎯 ' + resultadoFinal;
+    }
+  }
+
+  document.getElementById('btnRoletaAddOpcao').addEventListener('click', roletaAddOpcao);
+  document.getElementById('roletaDuracao').addEventListener('input', function(e){
+    document.getElementById('roletaDuracaoValor').textContent = parseFloat(e.target.value).toFixed(1) + 's';
+  });
+  document.getElementById('roletaIntensidade').addEventListener('input', function(e){
+    document.getElementById('roletaIntensidadeValor').textContent = e.target.value;
+  });
+  document.getElementById('btnRoletaGirar').addEventListener('click', roletaGirar);
+  document.getElementById('btnRoletaEnviar').addEventListener('click', function(){
+    if(roletaOpcoes.length < 2){ showNotif('⚠️ Adicione ao menos 2 opções.'); return; }
+    const fatias = roletaCalcularFatias();
+    roletaSyncPlayerFrame(fatias, roletaAnguloAtual);
+    showNotif('🎡 Roleta enviada pra tela do jogador');
+  });
+  document.getElementById('btnRoletaFechar').addEventListener('click', function(){
+    const cont = jogoGarantirContainer();
+    if(cont) cont.innerHTML = '';
+  });
+  roletaAddOpcao(); roletaAddOpcao(); // comeca com 2 opcoes prontas
+
+  // ---------- TRIVIA EM CADEIA ----------
+  let triviaPerguntas = [];
+  let triviaState = null;
+
+  function triviaRenderLista(){
+    let html = '';
+    triviaPerguntas.forEach(function(p, i){
+      html += '<div style="border:1px solid var(--line); border-radius:6px; padding:6px; margin-top:6px;">'+
+        '<input type="text" class="triviaPergunta" data-i="'+i+'" value="'+jogosEscapeHtml(p.pergunta)+'" placeholder="Pergunta '+(i+1)+'" style="width:100%; margin-bottom:4px;">'+
+        '<div class="row"><input type="text" class="triviaResposta" data-i="'+i+'" value="'+jogosEscapeHtml(p.resposta)+'" placeholder="Resposta" style="flex:1;">'+
+        '<button class="triviaRemover" data-i="'+i+'" style="width:30px; padding:0;">✕</button></div>'+
+        '</div>';
+    });
+    document.getElementById('triviaPerguntasLista').innerHTML = html;
+    document.querySelectorAll('.triviaPergunta').forEach(function(inp){
+      inp.addEventListener('input', function(){ triviaPerguntas[parseInt(inp.dataset.i)].pergunta = inp.value; });
+    });
+    document.querySelectorAll('.triviaResposta').forEach(function(inp){
+      inp.addEventListener('input', function(){ triviaPerguntas[parseInt(inp.dataset.i)].resposta = inp.value; });
+    });
+    document.querySelectorAll('.triviaRemover').forEach(function(btn){
+      btn.addEventListener('click', function(){ triviaPerguntas.splice(parseInt(btn.dataset.i),1); triviaRenderLista(); });
+    });
+  }
+
+  function triviaAddPergunta(){
+    triviaPerguntas.push({ pergunta:'', resposta:'' });
+    triviaRenderLista();
+  }
+
+  function triviaIniciar(){
+    if(triviaPerguntas.length === 0){ showNotif('⚠️ Adicione ao menos 1 pergunta.'); return; }
+    triviaState = { atual: 0, codigoFinal: document.getElementById('triviaCodigoFinal').value };
+    triviaAtualizarMestre();
+    showNotif('❓ Trivia iniciada');
+  }
+
+  function triviaAtualizarMestre(){
+    if(!triviaState) return;
+    if(triviaState.atual >= triviaPerguntas.length){
+      document.getElementById('triviaStatusMestre').innerHTML = '<b>Fim!</b> Código final: '+jogosEscapeHtml(triviaState.codigoFinal||'(nenhum definido)');
+    } else {
+      const p = triviaPerguntas[triviaState.atual];
+      document.getElementById('triviaStatusMestre').innerHTML = '<b>Pergunta '+(triviaState.atual+1)+'/'+triviaPerguntas.length+':</b> '+jogosEscapeHtml(p.pergunta)+'<br><span style="opacity:.6;">Resposta: '+jogosEscapeHtml(p.resposta)+'</span>';
+    }
+  }
+
+  function triviaProxima(){
+    if(!triviaState){ showNotif('⚠️ Inicie a trivia primeiro.'); return; }
+    triviaState.atual++;
+    triviaAtualizarMestre();
+    triviaSyncPlayer();
+  }
+
+  function triviaSyncPlayer(){
+    if(!triviaState) return;
+    const cont = jogoGarantirContainer();
+    if(!cont) return;
+    if(triviaState.atual >= triviaPerguntas.length){
+      cont.innerHTML = '<div style="text-align:center; color:#e7e3da; font-family:sans-serif;">'+
+        '<div style="font-size:1.5rem; opacity:.7; margin-bottom:16px;">🎉 Fim da trivia!</div>'+
+        (triviaState.codigoFinal ? '<div style="font-size:3rem; font-weight:bold; letter-spacing:6px; color:#c79a4b;">'+jogosEscapeHtml(triviaState.codigoFinal)+'</div>' : '')+
+        '</div>';
+    } else {
+      const p = triviaPerguntas[triviaState.atual];
+      cont.innerHTML = '<div style="text-align:center; color:#e7e3da; font-family:sans-serif; max-width:80vw;">'+
+        '<div style="font-size:1.2rem; opacity:.6; margin-bottom:20px;">Pergunta '+(triviaState.atual+1)+' de '+triviaPerguntas.length+'</div>'+
+        '<div style="font-size:2.2rem; font-weight:bold;">'+jogosEscapeHtml(p.pergunta)+'</div>'+
+        '</div>';
+    }
+  }
+
+  document.getElementById('btnTriviaAddPergunta').addEventListener('click', triviaAddPergunta);
+  document.getElementById('btnTriviaIniciar').addEventListener('click', function(){ triviaIniciar(); triviaSyncPlayer(); });
+  document.getElementById('btnTriviaProxima').addEventListener('click', triviaProxima);
+  document.getElementById('btnTriviaFechar').addEventListener('click', function(){
+    const cont = jogoGarantirContainer();
+    if(cont) cont.innerHTML = '';
+  });
+  triviaAddPergunta();
+
+  // ---------- SEQUÊNCIA LÓGICA ----------
+  let seqItens = []; // [{texto:'', isca:false}, ...]
+  let seqEmbaralhados = [];
+  let seqOrdemCorreta = [];
+
+  function seqRenderLista(){
+    let html = '';
+    seqItens.forEach(function(item, i){
+      html += '<div class="row" style="margin-top:4px; align-items:center;">'+
+        '<span class="hint" style="width:20px;">'+(i+1)+'.</span>'+
+        '<input type="text" class="seqItem" data-i="'+i+'" value="'+jogosEscapeHtml(item.texto)+'" placeholder="Item" style="flex:1;">'+
+        '<label class="hint" style="display:flex; align-items:center; gap:3px; white-space:nowrap;"><input type="checkbox" class="seqIsca" data-i="'+i+'" '+(item.isca?'checked':'')+'> isca</label>'+
+        '<button class="seqRemover" data-i="'+i+'" style="width:30px; padding:0;">✕</button>'+
+        '</div>';
+    });
+    document.getElementById('seqItensLista').innerHTML = html;
+    document.querySelectorAll('.seqItem').forEach(function(inp){
+      inp.addEventListener('input', function(){ seqItens[parseInt(inp.dataset.i)].texto = inp.value; });
+    });
+    document.querySelectorAll('.seqIsca').forEach(function(inp){
+      inp.addEventListener('change', function(){ seqItens[parseInt(inp.dataset.i)].isca = inp.checked; });
+    });
+    document.querySelectorAll('.seqRemover').forEach(function(btn){
+      btn.addEventListener('click', function(){ seqItens.splice(parseInt(btn.dataset.i),1); seqRenderLista(); });
+    });
+  }
+
+  function seqAddItem(){
+    seqItens.push({texto:'', isca:false});
+    seqRenderLista();
+  }
+
+  function seqEmbaralharArray(arr){
+    const copia = arr.slice();
+    for(let i=copia.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      const tmp = copia[i]; copia[i]=copia[j]; copia[j]=tmp;
+    }
+    return copia;
+  }
+
+  function seqIniciar(){
+    const validos = seqItens.filter(function(it){ return it.texto.trim() !== ''; });
+    if(validos.length < 2){ showNotif('⚠️ Adicione ao menos 2 itens.'); return; }
+    seqOrdemCorreta = validos.filter(function(it){ return !it.isca; }).map(function(it){ return it.texto; });
+    if(seqOrdemCorreta.length < 2){ showNotif('⚠️ Precisa de ao menos 2 itens que NÃO sejam isca.'); return; }
+    const todosTextos = validos.map(function(it){ return it.texto; });
+    seqEmbaralhados = seqEmbaralharArray(todosTextos);
+    let tentativas = 0;
+    while(JSON.stringify(seqEmbaralhados) === JSON.stringify(todosTextos) && tentativas < 10){
+      seqEmbaralhados = seqEmbaralharArray(todosTextos);
+      tentativas++;
+    }
+    const numIscas = validos.length - seqOrdemCorreta.length;
+    showNotif('🧩 Sequência embaralhada'+(numIscas>0 ? ' ('+numIscas+' isca(s))' : ''));
+  }
+
+  document.getElementById('btnSeqAddItem').addEventListener('click', seqAddItem);
+  document.getElementById('btnSeqEmbaralhar').addEventListener('click', seqIniciar);
+  document.getElementById('btnSeqEnviar').addEventListener('click', function(){
+    if(seqEmbaralhados.length === 0){ showNotif('⚠️ Embaralhe primeiro.'); return; }
+    const cont = jogoGarantirContainer();
+    if(!cont) return;
+    const pistas = document.getElementById('seqPistas').value.split('\n').filter(function(s){ return s.trim(); });
+    let html = '<div style="text-align:center; color:#e7e3da; font-family:sans-serif; max-width:85vw;">';
+    html += '<div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-bottom:24px;">';
+    seqEmbaralhados.forEach(function(item){
+      html += '<div style="padding:16px 20px; background:#1b1e25; border:2px solid #444; border-radius:8px; font-size:1.4rem; font-weight:bold;">'+jogosEscapeHtml(item)+'</div>';
+    });
+    html += '</div>';
+    if(pistas.length){
+      html += '<div style="font-size:1rem; opacity:.7; text-align:left; max-width:500px; margin:0 auto;">';
+      pistas.forEach(function(p){ html += '<div style="margin-bottom:6px;">• '+jogosEscapeHtml(p)+'</div>'; });
+      html += '</div>';
+    }
+    html += '</div>';
+    cont.innerHTML = html;
+    showNotif('🧩 Sequência enviada pra tela do jogador');
+  });
+  document.getElementById('btnSeqRevelar').addEventListener('click', function(){
+    if(seqOrdemCorreta.length === 0){ showNotif('⚠️ Nenhuma sequência ativa — clique em Embaralhar e iniciar primeiro.'); return; }
+    const cont = jogoGarantirContainer();
+    if(!cont) return;
+    let html = '<div style="text-align:center; color:#e7e3da; font-family:sans-serif;">';
+    html += '<div style="font-size:1.2rem; opacity:.6; margin-bottom:16px;">Ordem correta:</div>';
+    html += '<div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap;">';
+    seqOrdemCorreta.forEach(function(item, i){
+      html += '<div style="padding:16px 20px; background:#5c7a63; border-radius:8px; font-size:1.4rem; font-weight:bold; color:#fff;">'+(i+1)+'. '+jogosEscapeHtml(item)+'</div>';
+    });
+    html += '</div></div>';
+    cont.innerHTML = html;
+  });
+  document.getElementById('btnSeqFechar').addEventListener('click', function(){
+    const cont = jogoGarantirContainer();
+    if(cont) cont.innerHTML = '';
+  });
+  seqAddItem(); seqAddItem(); seqAddItem();
+
+  // ---------- CAÇA-PALAVRAS ----------
+  let cpState = null; // {cols, rows, grade:Map, palavras:{nome:[[c,l],...]}, encontradas:Set}
+
+  const CP_DIRECOES = [[1,0],[0,1],[1,1],[1,-1],[-1,0],[0,-1],[-1,-1],[-1,1]];
+
+  function cpTentarColocar(grade, palavra, cols, rows){
+    let tentativas = 0;
+    while(tentativas < 300){
+      tentativas++;
+      const dir = CP_DIRECOES[Math.floor(Math.random()*CP_DIRECOES.length)];
+      const dx = dir[0], dy = dir[1];
+      const len = palavra.length;
+      let minCol, maxCol, minLin, maxLin;
+      if(dx > 0){ minCol=0; maxCol=cols-len; } else if(dx < 0){ minCol=len-1; maxCol=cols-1; } else { minCol=0; maxCol=cols-1; }
+      if(dy > 0){ minLin=0; maxLin=rows-len; } else if(dy < 0){ minLin=len-1; maxLin=rows-1; } else { minLin=0; maxLin=rows-1; }
+      if(minCol > maxCol || minLin > maxLin) continue;
+      const col0 = minCol + Math.floor(Math.random()*(maxCol-minCol+1));
+      const lin0 = minLin + Math.floor(Math.random()*(maxLin-minLin+1));
+      const posicoes = [];
+      for(let i=0;i<len;i++) posicoes.push([col0+i*dx, lin0+i*dy]);
+      let ok = posicoes.every(function(p){ return p[0]>=0 && p[0]<cols && p[1]>=0 && p[1]<rows; });
+      if(!ok) continue;
+      let conflito = false;
+      for(let i=0;i<len;i++){
+        const key = posicoes[i][0]+','+posicoes[i][1];
+        const existente = grade.get(key);
+        if(existente !== undefined && existente !== palavra[i]){ conflito = true; break; }
+      }
+      if(conflito) continue;
+      for(let i=0;i<len;i++){
+        grade.set(posicoes[i][0]+','+posicoes[i][1], palavra[i]);
+      }
+      return posicoes;
+    }
+    return null;
+  }
+
+  function cpGerar(){
+    const bruto = document.getElementById('cpPalavras').value;
+    const palavras = bruto.split('\n').map(function(s){ return jogosRemoverAcentos(s.trim().toUpperCase()).replace(/[^A-Z]/g,''); }).filter(function(s){ return s.length >= 2; });
+    if(palavras.length === 0){ showNotif('⚠️ Digite ao menos 1 palavra.'); return; }
+    const cols = parseInt(document.getElementById('cpCols').value) || 12;
+    const rows = parseInt(document.getElementById('cpRows').value) || 10;
+
+    let sucesso = false;
+    let grade, posicoesPalavras;
+    for(let tentativaGeral=0; tentativaGeral<20 && !sucesso; tentativaGeral++){
+      grade = new Map();
+      posicoesPalavras = {};
+      const ordenadas = palavras.slice().sort(function(a,b){ return b.length-a.length; });
+      sucesso = true;
+      for(let i=0;i<ordenadas.length;i++){
+        const pos = cpTentarColocar(grade, ordenadas[i], cols, rows);
+        if(pos === null){ sucesso = false; break; }
+        posicoesPalavras[ordenadas[i]] = pos;
+      }
+    }
+    if(!sucesso){ showNotif('⚠️ Não coube tudo nessa grade — aumente colunas/linhas ou reduza palavras.'); return; }
+
+    const alfabeto = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    for(let c=0;c<cols;c++){
+      for(let l=0;l<rows;l++){
+        const key = c+','+l;
+        if(!grade.has(key)) grade.set(key, alfabeto[Math.floor(Math.random()*26)]);
+      }
+    }
+    cpState = { cols:cols, rows:rows, grade:grade, palavras:posicoesPalavras, encontradas:new Set() };
+    cpRenderMestre();
+    cpRenderChecklist();
+    showNotif('🔎 Caça-palavras gerado');
+  }
+
+  function cpRenderMestre(){
+    if(!cpState) return;
+    let html = '<div style="display:inline-grid; grid-template-columns:repeat('+cpState.cols+', 20px); gap:1px; font-family:monospace;">';
+    for(let l=0;l<cpState.rows;l++){
+      for(let c=0;c<cpState.cols;c++){
+        const letra = cpState.grade.get(c+','+l);
+        html += '<div style="width:20px;height:20px;display:flex;align-items:center;justify-content:center;background:var(--btn-bg);font-size:.65rem;color:var(--ink);">'+letra+'</div>';
+      }
+    }
+    html += '</div>';
+    document.getElementById('cpGridMestre').innerHTML = html;
+  }
+
+  function cpRenderChecklist(){
+    if(!cpState) return;
+    let html = '';
+    Object.keys(cpState.palavras).forEach(function(p){
+      const achou = cpState.encontradas.has(p);
+      html += '<button class="cpPalavraBtn" data-p="'+p+'" style="padding:4px 8px; font-size:.75rem; '+(achou?'background:var(--sick); text-decoration:line-through;':'')+'">'+p+'</button>';
+    });
+    document.getElementById('cpChecklist').innerHTML = html;
+    document.querySelectorAll('.cpPalavraBtn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        const p = btn.dataset.p;
+        if(cpState.encontradas.has(p)) cpState.encontradas.delete(p);
+        else cpState.encontradas.add(p);
+        cpRenderChecklist();
+        cpSyncPlayer();
+      });
+    });
+  }
+
+  function cpSyncPlayer(){
+    if(!cpState) return;
+    const cont = jogoGarantirContainer();
+    if(!cont) return;
+    const celulasEncontradas = new Set();
+    cpState.encontradas.forEach(function(p){
+      cpState.palavras[p].forEach(function(pos){ celulasEncontradas.add(pos[0]+','+pos[1]); });
+    });
+    let html = '<div style="display:inline-grid; grid-template-columns:repeat('+cpState.cols+', 34px); gap:2px; font-family:monospace;">';
+    for(let l=0;l<cpState.rows;l++){
+      for(let c=0;c<cpState.cols;c++){
+        const key = c+','+l;
+        const letra = cpState.grade.get(key);
+        const achada = celulasEncontradas.has(key);
+        html += '<div style="width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:'+(achada?'#5c7a63':'#1b1e25')+';color:#e7e3da;font-size:1rem;font-weight:bold;border-radius:3px;">'+letra+'</div>';
+      }
+    }
+    html += '</div>';
+    cont.innerHTML = html;
+  }
+
+  document.getElementById('btnCpGerar').addEventListener('click', cpGerar);
+  document.getElementById('btnCpEnviar').addEventListener('click', function(){
+    if(!cpState){ showNotif('⚠️ Gere o caça-palavras primeiro.'); return; }
+    cpSyncPlayer();
+    showNotif('🔎 Caça-palavras enviado pra tela do jogador');
+  });
+  document.getElementById('btnCpFechar').addEventListener('click', function(){
+    const cont = jogoGarantirContainer();
+    if(cont) cont.innerHTML = '';
+  });
+
+  // ---------- SUDOKU TEMÁTICO ----------
+  const SUDOKU_N = 4, SUDOKU_BOX_R = 2, SUDOKU_BOX_C = 2;
+  let sudokuState = null;
+
+  function sudokuValido(grade, lin, col, num){
+    for(let c=0;c<SUDOKU_N;c++) if(grade[lin][c]===num) return false;
+    for(let l=0;l<SUDOKU_N;l++) if(grade[l][col]===num) return false;
+    const br = Math.floor(lin/SUDOKU_BOX_R)*SUDOKU_BOX_R;
+    const bc = Math.floor(col/SUDOKU_BOX_C)*SUDOKU_BOX_C;
+    for(let l=br;l<br+SUDOKU_BOX_R;l++){
+      for(let c=bc;c<bc+SUDOKU_BOX_C;c++){
+        if(grade[l][c]===num) return false;
+      }
+    }
+    return true;
+  }
+
+  function sudokuPreencher(grade, pos){
+    if(pos === SUDOKU_N*SUDOKU_N) return true;
+    const lin = Math.floor(pos/SUDOKU_N), col = pos%SUDOKU_N;
+    const nums = [1,2,3,4];
+    for(let i=nums.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=nums[i];nums[i]=nums[j];nums[j]=t; }
+    for(let k=0;k<nums.length;k++){
+      const num = nums[k];
+      if(sudokuValido(grade, lin, col, num)){
+        grade[lin][col] = num;
+        if(sudokuPreencher(grade, pos+1)) return true;
+        grade[lin][col] = 0;
+      }
+    }
+    return false;
+  }
+
+  function sudokuGerar(){
+    const solucao = [];
+    for(let i=0;i<SUDOKU_N;i++) solucao.push(new Array(SUDOKU_N).fill(0));
+    sudokuPreencher(solucao, 0);
+
+    const numVazias = parseInt(document.getElementById('sudokuDificuldade').value);
+    const puzzle = solucao.map(function(row){ return row.slice(); });
+    const todasPosicoes = [];
+    for(let l=0;l<SUDOKU_N;l++){ for(let c=0;c<SUDOKU_N;c++){ todasPosicoes.push([l,c]); } }
+    for(let i=todasPosicoes.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=todasPosicoes[i];todasPosicoes[i]=todasPosicoes[j];todasPosicoes[j]=t; }
+    for(let i=0;i<numVazias && i<todasPosicoes.length;i++){
+      const l = todasPosicoes[i][0], c = todasPosicoes[i][1];
+      puzzle[l][c] = 0;
+    }
+
+    const simbolosRaw = document.getElementById('sudokuSimbolos').value.trim();
+    let simbolos = ['1','2','3','4'];
+    if(simbolosRaw){
+      const partes = simbolosRaw.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+      if(partes.length === 4) simbolos = partes;
+    }
+
+    sudokuState = { solucao:solucao, puzzle:puzzle, simbolos:simbolos };
+    sudokuRenderMestre();
+    showNotif('🔢 Sudoku gerado');
+  }
+
+  function sudokuRenderMestre(){
+    if(!sudokuState) return;
+    let html = '<div style="display:inline-grid; grid-template-columns:repeat('+SUDOKU_N+', 32px); gap:2px; font-family:monospace;">';
+    for(let l=0;l<SUDOKU_N;l++){
+      for(let c=0;c<SUDOKU_N;c++){
+        const valor = sudokuState.puzzle[l][c];
+        const texto = valor===0 ? '' : jogosEscapeHtml(sudokuState.simbolos[valor-1]);
+        html += '<div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:'+(valor===0?'var(--panel2)':'var(--btn-bg)')+';border:1px solid var(--line);font-size:.8rem;font-weight:bold;color:var(--ink);">'+texto+'</div>';
+      }
+    }
+    html += '</div>';
+    document.getElementById('sudokuGridMestre').innerHTML = html;
+  }
+
+  document.getElementById('btnSudokuGerar').addEventListener('click', sudokuGerar);
+  document.getElementById('btnSudokuEnviar').addEventListener('click', function(){
+    if(!sudokuState){ showNotif('⚠️ Gere o sudoku primeiro.'); return; }
+    const cont = jogoGarantirContainer();
+    if(!cont) return;
+    let html = '<div style="display:inline-grid; grid-template-columns:repeat('+SUDOKU_N+', 60px); gap:3px; font-family:monospace;">';
+    for(let l=0;l<SUDOKU_N;l++){
+      for(let c=0;c<SUDOKU_N;c++){
+        const valor = sudokuState.puzzle[l][c];
+        const texto = valor===0 ? '' : jogosEscapeHtml(sudokuState.simbolos[valor-1]);
+        html += '<div style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;background:'+(valor===0?'#1b1e25':'#2a2e38')+';color:#e7e3da;font-size:1.3rem;font-weight:bold;border-radius:3px;">'+texto+'</div>';
+      }
+    }
+    html += '</div>';
+    cont.innerHTML = html;
+    showNotif('🔢 Sudoku enviado pra tela do jogador');
+  });
+  document.getElementById('btnSudokuRevelar').addEventListener('click', function(){
+    if(!sudokuState){ showNotif('⚠️ Nenhum sudoku ativo.'); return; }
+    const cont = jogoGarantirContainer();
+    if(!cont) return;
+    let html = '<div style="display:inline-grid; grid-template-columns:repeat('+SUDOKU_N+', 60px); gap:3px; font-family:monospace;">';
+    for(let l=0;l<SUDOKU_N;l++){
+      for(let c=0;c<SUDOKU_N;c++){
+        const valor = sudokuState.solucao[l][c];
+        const eraVazia = sudokuState.puzzle[l][c]===0;
+        const texto = jogosEscapeHtml(sudokuState.simbolos[valor-1]);
+        html += '<div style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;background:'+(eraVazia?'#5c7a63':'#2a2e38')+';color:#e7e3da;font-size:1.3rem;font-weight:bold;border-radius:3px;">'+texto+'</div>';
+      }
+    }
+    html += '</div>';
+    cont.innerHTML = html;
+  });
+  document.getElementById('btnSudokuFechar').addEventListener('click', function(){
+    const cont = jogoGarantirContainer();
+    if(cont) cont.innerHTML = '';
+  });
+
+  // ---------- LABIRINTO VISUAL ----------
+  let labState = null;
+
+  function labGerar(){
+    const cols = parseInt(document.getElementById('labCols').value) || 10;
+    const rows = parseInt(document.getElementById('labRows').value) || 8;
+    const paredes = {};
+    for(let c=0;c<cols;c++){
+      for(let l=0;l<rows;l++){
+        paredes[c+','+l] = {N:true,S:true,E:true,W:true};
+      }
+    }
+    const DELTA = {N:[0,-1],S:[0,1],E:[1,0],W:[-1,0]};
+    const OPOSTO = {N:'S',S:'N',E:'W',W:'E'};
+    const visitado = new Set(['0,0']);
+    const pilha = [[0,0]];
+    while(pilha.length){
+      const atual = pilha[pilha.length-1];
+      const vizinhos = [];
+      for(const dir in DELTA){
+        const dx=DELTA[dir][0], dy=DELTA[dir][1];
+        const vc = atual[0]+dx, vl = atual[1]+dy;
+        if(vc>=0 && vc<cols && vl>=0 && vl<rows && !visitado.has(vc+','+vl)){
+          vizinhos.push([dir, vc, vl]);
+        }
+      }
+      if(vizinhos.length){
+        const escolha = vizinhos[Math.floor(Math.random()*vizinhos.length)];
+        const dir = escolha[0], vc = escolha[1], vl = escolha[2];
+        paredes[atual[0]+','+atual[1]][dir] = false;
+        paredes[vc+','+vl][OPOSTO[dir]] = false;
+        visitado.add(vc+','+vl);
+        pilha.push([vc,vl]);
+      } else {
+        pilha.pop();
+      }
+    }
+    labState = { cols:cols, rows:rows, paredes:paredes, caminho:null };
+    labRenderMestre();
+    showNotif('🌀 Labirinto gerado');
+  }
+
+  function labDesenharSvg(state, tamanhoCell, mostrarCaminho){
+    const cols=state.cols, rows=state.rows, paredes=state.paredes;
+    const w = cols*tamanhoCell, h = rows*tamanhoCell;
+    let svg = '<svg width="'+w+'" height="'+h+'" style="background:#1b1e25; display:block;">';
+    for(let c=0;c<cols;c++){
+      for(let l=0;l<rows;l++){
+        const p = paredes[c+','+l];
+        const x0=c*tamanhoCell, y0=l*tamanhoCell, x1=x0+tamanhoCell, y1=y0+tamanhoCell;
+        if(p.N) svg += '<line x1="'+x0+'" y1="'+y0+'" x2="'+x1+'" y2="'+y0+'" stroke="#c79a4b" stroke-width="2"/>';
+        if(p.W) svg += '<line x1="'+x0+'" y1="'+y0+'" x2="'+x0+'" y2="'+y1+'" stroke="#c79a4b" stroke-width="2"/>';
+        if(p.S) svg += '<line x1="'+x0+'" y1="'+y1+'" x2="'+x1+'" y2="'+y1+'" stroke="#c79a4b" stroke-width="2"/>';
+        if(p.E) svg += '<line x1="'+x1+'" y1="'+y0+'" x2="'+x1+'" y2="'+y1+'" stroke="#c79a4b" stroke-width="2"/>';
+      }
+    }
+    svg += '<rect x="2" y="2" width="'+(tamanhoCell-4)+'" height="'+(tamanhoCell-4)+'" fill="#5c7a63"/>';
+    svg += '<rect x="'+((cols-1)*tamanhoCell+2)+'" y="'+((rows-1)*tamanhoCell+2)+'" width="'+(tamanhoCell-4)+'" height="'+(tamanhoCell-4)+'" fill="#8a3b2b"/>';
+
+    if(mostrarCaminho && state.caminho){
+      let pathStr = '';
+      state.caminho.forEach(function(pos, i){
+        const cx = pos[0]*tamanhoCell + tamanhoCell/2;
+        const cy = pos[1]*tamanhoCell + tamanhoCell/2;
+        pathStr += (i===0?'M':'L') + cx + ',' + cy + ' ';
+      });
+      svg += '<path d="'+pathStr+'" stroke="#2f6f8f" stroke-width="4" fill="none" stroke-linecap="round"/>';
+    }
+    svg += '</svg>';
+    return svg;
+  }
+
+  function labResolver(state){
+    const cols=state.cols, rows=state.rows, paredes=state.paredes;
+    const DELTA = {N:[0,-1],S:[0,1],E:[1,0],W:[-1,0]};
+    const inicio = [0,0], fim = [cols-1,rows-1];
+    const visitado = new Set([inicio.join(',')]);
+    const veioDe = {};
+    const fila = [inicio];
+    while(fila.length){
+      const atual = fila.shift();
+      if(atual[0]===fim[0] && atual[1]===fim[1]) break;
+      const p = paredes[atual[0]+','+atual[1]];
+      for(const dir in DELTA){
+        if(!p[dir]){
+          const dx=DELTA[dir][0], dy=DELTA[dir][1];
+          const viz = [atual[0]+dx, atual[1]+dy];
+          const key = viz.join(',');
+          if(!visitado.has(key)){
+            visitado.add(key);
+            veioDe[key] = atual;
+            fila.push(viz);
+          }
+        }
+      }
+    }
+    const caminho = [fim];
+    let atualKey = fim.join(',');
+    while(veioDe[atualKey]){
+      const anterior = veioDe[atualKey];
+      caminho.unshift(anterior);
+      atualKey = anterior.join(',');
+    }
+    return caminho;
+  }
+
+  function labRenderMestre(){
+    if(!labState) return;
+    document.getElementById('labPreviewMestre').innerHTML = labDesenharSvg(labState, 24, false);
+  }
+
+  document.getElementById('btnLabGerar').addEventListener('click', labGerar);
+  document.getElementById('btnLabEnviar').addEventListener('click', function(){
+    if(!labState){ showNotif('⚠️ Gere o labirinto primeiro.'); return; }
+    const cont = jogoGarantirContainer();
+    if(!cont) return;
+    cont.innerHTML = labDesenharSvg(labState, 48, false);
+    showNotif('🌀 Labirinto enviado pra tela do jogador');
+  });
+  document.getElementById('btnLabRevelar').addEventListener('click', function(){
+    if(!labState){ showNotif('⚠️ Nenhum labirinto ativo.'); return; }
+    labState.caminho = labResolver(labState);
+    const cont = jogoGarantirContainer();
+    if(!cont) return;
+    cont.innerHTML = labDesenharSvg(labState, 48, true);
+  });
+  document.getElementById('btnLabFechar').addEventListener('click', function(){
+    const cont = jogoGarantirContainer();
+    if(cont) cont.innerHTML = '';
+  });
+
+  // ---------- JIGSAW ----------
+  let jigsawImagem = null;
+  let jigsawState = null;
+
+  document.getElementById('btnJigsawUpload').addEventListener('click', function(){
+    document.getElementById('jigsawInput').click();
+  });
+  document.getElementById('jigsawInput').addEventListener('change', function(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      jigsawImagem = ev.target.result;
+      document.getElementById('jigsawImg').src = jigsawImagem;
+      document.getElementById('jigsawPreview').style.display = 'block';
+      showNotif('🧩 Imagem carregada');
+    };
+    reader.readAsDataURL(file);
+  });
+
+  function jigsawEmbaralharEEnviar(){
+    if(!jigsawImagem){ showNotif('⚠️ Escolha uma imagem primeiro.'); return; }
+    const n = parseInt(document.getElementById('jigsawTamanho').value);
+    const totalPecas = n*n;
+    const ordem = [];
+    for(let i=0;i<totalPecas;i++) ordem.push(i);
+    for(let i=ordem.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=ordem[i];ordem[i]=ordem[j];ordem[j]=t; }
+    jigsawState = { n:n, ordem:ordem, selecionada:null };
+    jigsawSyncPlayer();
+    showNotif('🧩 Quebra-cabeça enviado pra tela do jogador');
+  }
+
+  function jigsawSyncPlayer(){
+    if(!jigsawState) return;
+    const cont = jogoGarantirContainer();
+    if(!cont) return;
+    const n = jigsawState.n;
+    const tamanhoTotal = 480;
+    const tamanhoPeca = tamanhoTotal/n;
+    let html = '<div id="jigsawGridP" style="display:grid; grid-template-columns:repeat('+n+', '+tamanhoPeca+'px); width:'+tamanhoTotal+'px; gap:1px; background:#444;">';
+    jigsawState.ordem.forEach(function(pecaIdx, posAtual){
+      const pecaLin = Math.floor(pecaIdx/n), pecaCol = pecaIdx%n;
+      const bgPosX = -(pecaCol*tamanhoPeca);
+      const bgPosY = -(pecaLin*tamanhoPeca);
+      const borda = (jigsawState.selecionada===posAtual) ? '2px solid #c79a4b' : '2px solid transparent';
+      html += '<div class="jigsawPeca" data-pos="'+posAtual+'" style="width:'+tamanhoPeca+'px;height:'+tamanhoPeca+'px;background-image:url(\'' + jigsawImagem + '\');background-size:'+tamanhoTotal+'px '+tamanhoTotal+'px;background-position:'+bgPosX+'px '+bgPosY+'px;cursor:pointer;box-sizing:border-box;border:'+borda+';"></div>';
+    });
+    html += '</div>';
+    cont.innerHTML = html;
+
+    if(playerWin && !playerWin.closed){
+      Array.prototype.forEach.call(playerWin.document.querySelectorAll('.jigsawPeca'), function(el){
+        el.addEventListener('click', function(){
+          jigsawCliqueNaPeca(parseInt(el.dataset.pos));
+        });
+      });
+    }
+  }
+
+  function jigsawCliqueNaPeca(pos){
+    if(jigsawState.selecionada === null){
+      jigsawState.selecionada = pos;
+      jigsawSyncPlayer();
+    } else {
+      const a = jigsawState.selecionada, b = pos;
+      const tmp = jigsawState.ordem[a];
+      jigsawState.ordem[a] = jigsawState.ordem[b];
+      jigsawState.ordem[b] = tmp;
+      jigsawState.selecionada = null;
+      jigsawSyncPlayer();
+      const resolvido = jigsawState.ordem.every(function(v,i){ return v===i; });
+      if(resolvido){
+        showNotif('🧩 Quebra-cabeça resolvido!');
+      }
+    }
+  }
+
+  document.getElementById('btnJigsawEmbaralhar').addEventListener('click', jigsawEmbaralharEEnviar);
+  document.getElementById('btnJigsawFechar').addEventListener('click', function(){
+    const cont = jogoGarantirContainer();
+    if(cont) cont.innerHTML = '';
+  });
+
+  // ---------- PALAVRAS CRUZADAS ----------
+  let cruzadaPalavras = [];
+  let cruzadaState = null;
+
+  function cruzadaRenderLista(){
+    let html = '';
+    cruzadaPalavras.forEach(function(p, i){
+      html += '<div class="row" style="margin-top:4px;">'+
+        '<input type="text" class="cruzadaPalavra" data-i="'+i+'" value="'+jogosEscapeHtml(p.palavra)+'" placeholder="Palavra" style="width:100px;">'+
+        '<input type="text" class="cruzadaDica" data-i="'+i+'" value="'+jogosEscapeHtml(p.dica)+'" placeholder="Dica" style="flex:1;">'+
+        '<button class="cruzadaRemover" data-i="'+i+'" style="width:30px; padding:0;">✕</button>'+
+        '</div>';
+    });
+    document.getElementById('cruzadaListaPalavras').innerHTML = html;
+    document.querySelectorAll('.cruzadaPalavra').forEach(function(inp){
+      inp.addEventListener('input', function(){ cruzadaPalavras[parseInt(inp.dataset.i)].palavra = jogosRemoverAcentos(inp.value.toUpperCase()).replace(/[^A-Z]/g,''); });
+    });
+    document.querySelectorAll('.cruzadaDica').forEach(function(inp){
+      inp.addEventListener('input', function(){ cruzadaPalavras[parseInt(inp.dataset.i)].dica = inp.value; });
+    });
+    document.querySelectorAll('.cruzadaRemover').forEach(function(btn){
+      btn.addEventListener('click', function(){ cruzadaPalavras.splice(parseInt(btn.dataset.i),1); cruzadaRenderLista(); });
+    });
+  }
+
+  function cruzadaAddPalavra(){
+    cruzadaPalavras.push({ palavra:'', dica:'' });
+    cruzadaRenderLista();
+  }
+
+  function cruzadaTentarGerar(palavrasValidas){
+    const ordenadas = palavrasValidas.slice().sort(function(a,b){ return b.palavra.length - a.palavra.length; });
+    const grade = new Map();
+    const posicoes = {};
+
+    const p0 = ordenadas[0];
+    for(let i=0;i<p0.palavra.length;i++) grade.set(i+',0', p0.palavra[i]);
+    posicoes[p0.palavra] = { col:0, lin:0, dir:'H', dica:p0.dica };
+
+    for(let idx=1; idx<ordenadas.length; idx++){
+      const palavra = ordenadas[idx].palavra;
+      const dica = ordenadas[idx].dica;
+      const candidatos = [];
+      Object.keys(posicoes).forEach(function(outra){
+        const info = posicoes[outra];
+        for(let i=0;i<palavra.length;i++){
+          for(let j=0;j<outra.length;j++){
+            if(palavra[i] === outra[j]){
+              if(info.dir === 'H'){
+                const colCruza = info.col+j, linCruza = info.lin;
+                candidatos.push({ col: colCruza, lin: linCruza-i, dir:'V' });
+              } else {
+                const colCruza = info.col, linCruza = info.lin+j;
+                candidatos.push({ col: colCruza-i, lin: linCruza, dir:'H' });
+              }
+            }
+          }
+        }
+      });
+      for(let i=candidatos.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=candidatos[i];candidatos[i]=candidatos[j];candidatos[j]=t; }
+
+      let colocado = false;
+      for(let ci=0; ci<candidatos.length && !colocado; ci++){
+        const cand = candidatos[ci];
+        const posicoesNovas = [];
+        for(let i=0;i<palavra.length;i++){
+          const pos = cand.dir==='H' ? [cand.col+i, cand.lin] : [cand.col, cand.lin+i];
+          posicoesNovas.push([pos, palavra[i]]);
+        }
+        let conflito = false;
+        for(let k=0;k<posicoesNovas.length;k++){
+          const pos = posicoesNovas[k][0], ch = posicoesNovas[k][1];
+          const key = pos[0]+','+pos[1];
+          if(grade.has(key) && grade.get(key) !== ch){ conflito = true; break; }
+        }
+        if(conflito) continue;
+        for(let k=0;k<posicoesNovas.length;k++){
+          const pos = posicoesNovas[k][0], ch = posicoesNovas[k][1];
+          grade.set(pos[0]+','+pos[1], ch);
+        }
+        posicoes[palavra] = { col:cand.col, lin:cand.lin, dir:cand.dir, dica:dica };
+        colocado = true;
+      }
+      if(!colocado) return null;
+    }
+    return { grade:grade, posicoes:posicoes };
+  }
+
+  function cruzadaGerar(){
+    const validas = cruzadaPalavras.filter(function(p){ return p.palavra.length >= 2; });
+    if(validas.length < 2){ showNotif('⚠️ Adicione ao menos 2 palavras.'); return; }
+
+    let resultado = null;
+    for(let tentativa=0; tentativa<50 && !resultado; tentativa++){
+      resultado = cruzadaTentarGerar(validas);
+    }
+    if(!resultado){ showNotif('⚠️ Não consegui cruzar essas palavras — tente palavras com letras em comum.'); return; }
+
+    cruzadaState = resultado;
+    cruzadaRenderMestre();
+    showNotif('✏️ Cruzadinha gerada');
+  }
+
+  function cruzadaLimites(grade){
+    const chaves = Array.from(grade.keys());
+    const cols = chaves.map(function(k){ return parseInt(k.split(',')[0]); });
+    const lins = chaves.map(function(k){ return parseInt(k.split(',')[1]); });
+    return { minC: Math.min.apply(null,cols), maxC: Math.max.apply(null,cols), minL: Math.min.apply(null,lins), maxL: Math.max.apply(null,lins) };
+  }
+
+  function cruzadaRenderMestre(){
+    if(!cruzadaState) return;
+    const grade = cruzadaState.grade;
+    const lim = cruzadaLimites(grade);
+    let html = '<div style="display:inline-grid; grid-template-columns:repeat('+(lim.maxC-lim.minC+1)+', 26px); gap:1px; font-family:monospace;">';
+    for(let l=lim.minL; l<=lim.maxL; l++){
+      for(let c=lim.minC; c<=lim.maxC; c++){
+        const letra = grade.get(c+','+l);
+        html += '<div style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;background:'+(letra?'var(--btn-bg)':'transparent')+';font-size:.7rem;color:var(--ink);">'+(letra||'')+'</div>';
+      }
+    }
+    html += '</div>';
+    document.getElementById('cruzadaGridMestre').innerHTML = html;
+  }
+
+  function cruzadaSyncPlayer(revelarTudo){
+    if(!cruzadaState) return;
+    const cont = jogoGarantirContainer();
+    if(!cont) return;
+    const grade = cruzadaState.grade, posicoes = cruzadaState.posicoes;
+    const lim = cruzadaLimites(grade);
+    let html = '<div style="display:flex; gap:24px; align-items:flex-start;">';
+    html += '<div style="display:inline-grid; grid-template-columns:repeat('+(lim.maxC-lim.minC+1)+', 34px); gap:2px; font-family:monospace;">';
+    for(let l=lim.minL; l<=lim.maxL; l++){
+      for(let c=lim.minC; c<=lim.maxC; c++){
+        const key = c+','+l;
+        const letra = grade.get(key);
+        const texto = letra && revelarTudo ? letra : '';
+        html += '<div style="width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:'+(letra?(revelarTudo?'#5c7a63':'#1b1e25'):'transparent')+';color:#e7e3da;font-size:1rem;font-weight:bold;border-radius:2px;">'+texto+'</div>';
+      }
+    }
+    html += '</div>';
+    html += '<div style="color:#e7e3da; font-family:sans-serif;">';
+    html += '<div style="font-size:1.2rem; margin-bottom:10px; opacity:.7;">Dicas:</div>';
+    Object.keys(posicoes).forEach(function(p, i){
+      html += '<div style="margin-bottom:6px;">'+(i+1)+'. '+jogosEscapeHtml(posicoes[p].dica||p)+'</div>';
+    });
+    html += '</div></div>';
+    cont.innerHTML = html;
+  }
+
+  document.getElementById('btnCruzadaAddPalavra').addEventListener('click', cruzadaAddPalavra);
+  document.getElementById('btnCruzadaGerar').addEventListener('click', cruzadaGerar);
+  document.getElementById('btnCruzadaEnviar').addEventListener('click', function(){
+    if(!cruzadaState){ showNotif('⚠️ Gere a cruzadinha primeiro.'); return; }
+    cruzadaSyncPlayer(false);
+    showNotif('✏️ Cruzadinha enviada pra tela do jogador');
+  });
+  document.getElementById('btnCruzadaRevelar').addEventListener('click', function(){
+    if(!cruzadaState){ showNotif('⚠️ Nenhuma cruzadinha ativa.'); return; }
+    cruzadaSyncPlayer(true);
+  });
+  document.getElementById('btnCruzadaFechar').addEventListener('click', function(){
+    const cont = jogoGarantirContainer();
+    if(cont) cont.innerHTML = '';
+  });
+  cruzadaAddPalavra(); cruzadaAddPalavra(); cruzadaAddPalavra();
+
+  // ---------- IMPORTAR PUZZLES DO ROTEIRO (10-puzzles.json) ----------
+
+  // Mapa: tipo do JSON -> {nomeJogo, idBlocoTitulo, suportado}
+  const IMPORT_TIPO_INFO = {
+    'cadeado_numerico':      { nome:'Cadeado Numérico',       bloco:'Cadeado Numérico' },
+    'anagrama':              { nome:'Anagrama',                bloco:'Anagrama' },
+    'sequencia_logica':      { nome:'Sequência Lógica',        bloco:'Sequência Lógica' },
+    'cifra':                 { nome:'Cifra / Código Secreto',  bloco:'Cifra / Código Secreto' },
+    'sudoku_tematico':       { nome:'Sudoku Temático',         bloco:'Sudoku Temático' },
+    'caca_palavras':         { nome:'Caça-palavras',           bloco:'Caça-palavras' },
+    'palavras_cruzadas':     { nome:'Palavras Cruzadas',       bloco:'Palavras Cruzadas' },
+    'trivia_em_cadeia':      { nome:'Trivia em Cadeia',        bloco:'Trivia em Cadeia' },
+    'mensagem_espelhada':    { nome:'Mensagem Espelhada',      bloco:'Mensagem Espelhada' },
+    'roleta_decisao':        { nome:'Roleta de Decisão',       bloco:'Roleta de Decisão' },
+    'jigsaw':                { nome:'Jigsaw',                  bloco:'Jigsaw' },
+    'labirinto':             { nome:'Labirinto Visual',        bloco:'Labirinto Visual' },
+    'sequencia_sonora':      { nome:'Jogo Sonoro',             bloco:'Jogo Sonoro' },
+  };
+  // Tipos sem jogo de tela correspondente (leitura em voz alta / conduzido ao vivo) —
+  // mostrados no importador com uma explicação, não como erro.
+  const IMPORT_TIPO_SEM_JOGO = {
+    'enigma': 'Texto pronto pra ler em voz alta — não precisa de tela.',
+    'trivia': 'Texto pronto — use como referência de fala.',
+    'fragmentos_para_ordenar': 'Prop físico (tiras de papel) — imprima e recorte.',
+    'sete_erros': 'Precisa de 2 imagens geradas externamente — não automatizável aqui.',
+    'silhueta': 'Precisa de imagem gerada externamente — não automatizável aqui.',
+    'mimica_ou_desenho': 'Dinâmica física/social — conduza ao vivo, sem tela.',
+    'caixa_misteriosa': 'Dinâmica física — precisa de objeto real na mesa.',
+    'desafio_fisico': 'Dinâmica física — conduza ao vivo, sem tela.',
+  };
+
+  function importarCampo(dados, nomes){
+    for(let i=0;i<nomes.length;i++){
+      const v = dados[nomes[i]];
+      if(v !== undefined && v !== null && v !== '') return v;
+    }
+    return null;
+  }
+
+  function importarExpandirEIr(nomeBloco){
+    const blocos = document.querySelectorAll('.ribbonPanel[data-panel="jogos"] .block');
+    for(let i=0;i<blocos.length;i++){
+      const h2 = blocos[i].querySelector('h2');
+      if(h2 && h2.textContent.indexOf(nomeBloco) !== -1){
+        blocos[i].classList.remove('collapsed');
+        blocos[i].scrollIntoView({behavior:'smooth', block:'start'});
+        return;
+      }
+    }
+  }
+
+  function importarCarregar(dinamica){
+    const tipo = dinamica.tipo;
+    const dados = dinamica.dados || {};
+    const info = IMPORT_TIPO_INFO[tipo];
+    if(!info){ showNotif('⚠️ Tipo "'+tipo+'" não tem jogo de tela correspondente.'); return; }
+
+    if(tipo === 'cadeado_numerico'){
+      const pistas = importarCampo(dados, ['pistas']);
+      const operacao = importarCampo(dados, ['operacao']);
+      const codigoFinalDireto = importarCampo(dados, ['codigo_final','codigo_resposta','codigo_correto','codigo','solucao']);
+      let codigo = null;
+      if(pistas && Array.isArray(pistas) && operacao){
+        try{
+          const valores = pistas.map(function(p){ return parseInt(p.valor); });
+          if(operacao === 'concatenacao') codigo = valores.map(String).join('');
+          else if(operacao === 'soma') codigo = String(valores.reduce(function(a,b){return a+b;}, 0));
+          else if(operacao === 'produto') codigo = String(valores.reduce(function(a,b){return a*b;}, 1));
+        }catch(e){ codigo = null; }
+        if(codigo && codigoFinalDireto && String(codigo) !== String(codigoFinalDireto)){
+          showNotif('⚠️ Calculei "'+codigo+'" a partir das pistas, mas o JSON diz "'+codigoFinalDireto+'" — usando o valor calculado. Confira a operação.');
+        }
+      }
+      if(!codigo) codigo = codigoFinalDireto;
+      if(codigo){
+        document.getElementById('cadeadoDigitos').value = String(codigo).length;
+        document.getElementById('cadeadoCodigo').value = String(codigo);
+        cadeadoIniciar();
+      }
+    } else if(tipo === 'anagrama'){
+      const resposta = importarCampo(dados, ['resposta_correta','resposta','palavra']);
+      if(resposta){
+        document.getElementById('anagramaPalavra').value = resposta;
+        anagramaIniciar();
+      }
+    } else if(tipo === 'sequencia_logica'){
+      const elementos = importarCampo(dados, ['elementos']);
+      const ordemCorreta = importarCampo(dados, ['ordem_correta','sequencia_correta']);
+      if(ordemCorreta && Array.isArray(ordemCorreta)){
+        const todos = (elementos && Array.isArray(elementos)) ? elementos : ordemCorreta;
+        // ordena: primeiro os itens da ordem_correta (na ordem certa), depois as iscas (itens
+        // de elementos que nao aparecem em ordem_correta) marcadas como isca:true
+        const emOrdem = ordemCorreta.map(function(texto){ return { texto: texto, isca: false }; });
+        const iscas = todos.filter(function(t){ return ordemCorreta.indexOf(t) === -1; })
+          .map(function(texto){ return { texto: texto, isca: true }; });
+        seqItens = emOrdem.concat(iscas);
+        seqRenderLista();
+      }
+      const pista = importarCampo(dados, ['pista_in_fiction','pistas','dicas']);
+      if(pista){
+        document.getElementById('seqPistas').value = Array.isArray(pista) ? pista.join('\n') : pista;
+      }
+    } else if(tipo === 'cifra'){
+      const texto = importarCampo(dados, ['mensagem_original','texto_original','mensagem','texto']);
+      const deslocamento = importarCampo(dados, ['deslocamento','offset']);
+      if(texto) document.getElementById('cifraTexto').value = texto;
+      if(deslocamento) document.getElementById('cifraDeslocamento').value = deslocamento;
+    } else if(tipo === 'sudoku_tematico'){
+      const simbolos = importarCampo(dados, ['simbolos','runas']);
+      if(simbolos && Array.isArray(simbolos) && simbolos.length===4){
+        document.getElementById('sudokuSimbolos').value = simbolos.join(', ');
+      } else if(simbolos && Array.isArray(simbolos)){
+        showNotif('⚠️ Sudoku precisa de exatamente 4 símbolos (veio '+simbolos.length+') — usando números padrão.');
+      }
+    } else if(tipo === 'caca_palavras'){
+      const palavras = importarCampo(dados, ['palavras','palavras_alvo']);
+      if(palavras && Array.isArray(palavras)){
+        document.getElementById('cpPalavras').value = palavras.join('\n');
+      }
+      const tamanho = importarCampo(dados, ['tamanho_grade_sugerido']);
+      if(tamanho){
+        document.getElementById('cpCols').value = tamanho;
+        document.getElementById('cpRows').value = tamanho;
+      }
+    } else if(tipo === 'palavras_cruzadas'){
+      const lista = importarCampo(dados, ['palavras','palavras_com_dica','itens']);
+      if(lista && Array.isArray(lista)){
+        cruzadaPalavras = lista.map(function(item){
+          if(typeof item === 'string') return { palavra: jogosRemoverAcentos(item.toUpperCase()).replace(/[^A-Z]/g,''), dica:'' };
+          const palavra = importarCampo(item, ['palavra','resposta']) || '';
+          const dica = importarCampo(item, ['dica','pista']) || '';
+          return { palavra: jogosRemoverAcentos(String(palavra).toUpperCase()).replace(/[^A-Z]/g,''), dica: dica };
+        });
+        cruzadaRenderLista();
+      }
+    } else if(tipo === 'trivia_em_cadeia'){
+      const perguntas = importarCampo(dados, ['perguntas','sequencia_perguntas']);
+      if(perguntas && Array.isArray(perguntas)){
+        triviaPerguntas = perguntas.map(function(p){
+          return {
+            pergunta: importarCampo(p, ['pergunta','texto']) || '',
+            resposta: importarCampo(p, ['resposta','resposta_correta']) || ''
+          };
+        });
+        triviaRenderLista();
+      }
+      const codigoFinal = importarCampo(dados, ['codigo_final','palavra_final']);
+      if(codigoFinal) document.getElementById('triviaCodigoFinal').value = codigoFinal;
+    } else if(tipo === 'mensagem_espelhada'){
+      const texto = importarCampo(dados, ['mensagem','texto','texto_espelhado']);
+      if(texto) document.getElementById('espelhoTexto').value = texto;
+    } else if(tipo === 'roleta_decisao'){
+      const opcoesRaw = importarCampo(dados, ['opcoes']);
+      const pesosRaw = importarCampo(dados, ['pesos']);
+      if(opcoesRaw && Array.isArray(opcoesRaw)){
+        roletaOpcoes = opcoesRaw.map(function(o, i){
+          const nome = (typeof o === 'string') ? o : (importarCampo(o, ['nome','opcao','texto']) || '?');
+          const peso = (pesosRaw && Array.isArray(pesosRaw) && pesosRaw[i] !== undefined) ? parseInt(pesosRaw[i]) : 1;
+          return { nome:nome, peso: peso||1 };
+        });
+        roletaRenderLista();
+        roletaDesenharMestre();
+      }
+    } else if(tipo === 'jigsaw'){
+      const prompt = importarCampo(dados, ['prompt_imagem','prompt','descricao']);
+      showNotif('🧩 Jigsaw precisa de imagem gerada à parte. '+(prompt ? 'Prompt: '+prompt.slice(0,80)+'...' : ''));
+    } else if(tipo === 'labirinto'){
+      // labirinto e gerado pelo proprio algoritmo, nao depende de imagem externa
+      labGerar();
+      showNotif('🌀 Labirinto gerado automaticamente (não depende dos dados do JSON).');
+    } else if(tipo === 'sequencia_sonora'){
+      const padrao = importarCampo(dados, ['padrao','sequencia']);
+      const rodadas = (padrao && Array.isArray(padrao)) ? padrao.length : 3;
+      jsState = { sequencia:[], rodada:0 };
+      for(let i=0;i<rodadas;i++) jsAdicionarRodada();
+      showNotif('🎵 Jogo Sonoro preparado com '+rodadas+' rodada(s).');
+    }
+
+    importarExpandirEIr(info.bloco);
+    showNotif('📥 "'+dinamica.titulo+'" carregado em '+info.nome);
+  }
+
+  function importarRenderLista(dinamicas){
+    let html = '';
+    dinamicas.forEach(function(d, i){
+      const info = IMPORT_TIPO_INFO[d.tipo];
+      const semJogo = IMPORT_TIPO_SEM_JOGO[d.tipo];
+      html += '<div style="border:1px solid var(--line); border-radius:6px; padding:8px; margin-top:6px;">';
+      html += '<div style="font-weight:bold; font-size:.85rem;">'+jogosEscapeHtml(d.titulo)+'</div>';
+      html += '<div class="hint" style="margin:2px 0;">Cena '+(d.cena_ref!==undefined?d.cena_ref:'?')+' · tipo: '+jogosEscapeHtml(d.tipo)+'</div>';
+      if(info){
+        html += '<button class="importCarregarBtn" data-i="'+i+'" style="width:100%; margin-top:4px;">Carregar em '+jogosEscapeHtml(info.nome)+'</button>';
+      } else if(semJogo){
+        html += '<div class="hint" style="opacity:.7; font-style:italic;">Sem jogo de tela — '+jogosEscapeHtml(semJogo)+'</div>';
+      } else {
+        html += '<div class="hint" style="opacity:.7; font-style:italic;">Tipo não reconhecido — dados brutos abaixo pra copiar manualmente:</div>';
+        html += '<pre style="font-size:.65rem; white-space:pre-wrap; background:var(--panel2); padding:4px; border-radius:4px; max-height:100px; overflow-y:auto;">'+jogosEscapeHtml(JSON.stringify(d.dados||{}, null, 1))+'</pre>';
+      }
+      html += '</div>';
+    });
+    document.getElementById('importPuzzlesLista').innerHTML = html;
+    document.querySelectorAll('.importCarregarBtn').forEach(function(btn){
+      btn.addEventListener('click', function(){ importarCarregar(dinamicas[parseInt(btn.dataset.i)]); });
+    });
+  }
+
+  document.getElementById('btnImportPuzzlesUpload').addEventListener('click', function(){
+    document.getElementById('importPuzzlesInput').click();
+  });
+  document.getElementById('importPuzzlesInput').addEventListener('change', function(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      let json;
+      try{
+        json = JSON.parse(ev.target.result);
+      }catch(err){
+        showNotif('⚠️ Arquivo não é um JSON válido.');
+        return;
+      }
+      const dinamicas = json.dinamicas;
+      if(!Array.isArray(dinamicas)){
+        showNotif('⚠️ JSON não tem o formato esperado (falta "dinamicas").');
+        return;
+      }
+      importarRenderLista(dinamicas);
+      showNotif('📥 '+dinamicas.length+' dinâmica(s) encontrada(s)');
+    };
+    reader.readAsText(file);
+  });
+
+  // ---------- IMPORTAR 09-IMPROVISO.JSON (Referência) ----------
+  function refEsc(s){ return jogosEscapeHtml(String(s==null?'':s)); }
+  function refBuscarNomeNpc(npcId){
+    const achado = importedNpcs.find(function(o){ return o.id === npcId; });
+    return achado ? achado.label : npcId;
+  }
+
+
+  function renderImprovisoRef(data){
+    let html = '';
+
+    if(data.framework_geral && data.framework_geral.length){
+      html += '<div class="block" style="width:320px"><h2>🎲 Framework de Improviso</h2><div class="refBlock">';
+      data.framework_geral.forEach(function(item){
+        html += '<b>'+refEsc(item.situacao)+':</b> '+refEsc(item.modificador)+'<br>';
+      });
+      html += '</div></div>';
+    }
+
+    if(data.situacoes_comuns && data.situacoes_comuns.length){
+      html += '<div class="block" style="width:320px"><h2>🗨️ Situações Comuns</h2><div class="refBlock">';
+      data.situacoes_comuns.forEach(function(item){
+        html += '<b>'+refEsc(item.situacao)+':</b> '+refEsc(item.como_resolver)+'<br><br>';
+      });
+      html += '</div></div>';
+    }
+
+    if(data.loot_ambiental && data.loot_ambiental.length){
+      html += '<div class="block" style="width:320px"><h2>🎒 Loot Ambiental</h2><div class="refBlock">';
+      data.loot_ambiental.forEach(function(item){
+        html += '• <b>'+refEsc(item.item)+':</b> '+refEsc(item.uso_sugerido)+'<br>';
+      });
+      html += '</div></div>';
+    }
+
+    if(data.gatilhos_especificos && data.gatilhos_especificos.length){
+      html += '<div class="block" style="width:320px"><h2>⚡ Gatilhos Específicos</h2><div class="refBlock">';
+      data.gatilhos_especificos.forEach(function(item){
+        html += '<b>Se:</b> '+refEsc(item.situacao)+'<br><b>Faça:</b> '+refEsc(item.como_lidar)+'<br><br>';
+      });
+      html += '</div></div>';
+    }
+
+    if(data.banco_de_falas && data.banco_de_falas.length){
+      html += '<div class="block" style="width:320px"><h2>🗣️ Banco de Falas</h2><div class="refBlock">';
+      data.banco_de_falas.forEach(function(entry){
+        const nomeNpc = refBuscarNomeNpc(entry.npc_id);
+        const fase = entry.fase ? ' — '+refEsc(entry.fase) : '';
+        html += '<b>'+refEsc(nomeNpc)+fase+'</b><br>';
+        if(entry.frase_coringa) html += '<i>"'+refEsc(entry.frase_coringa)+'"</i><br>';
+        (entry.reacoes||[]).forEach(function(r){
+          html += '• Se '+refEsc(r.gatilho)+': "'+refEsc(r.fala)+'"<br>';
+        });
+        html += '<br>';
+      });
+      html += '</div></div>';
+    }
+
+    document.getElementById('refImprovisoContainer').innerHTML = html;
+    makeBlocksCollapsible();
+    showNotif('🎲 Tabela de Improviso importada pra Referência');
+  }
+
+  document.getElementById('btnImportImprovisoUpload').addEventListener('click', function(){
+    document.getElementById('importImprovisoInput').click();
+  });
+  document.getElementById('importImprovisoInput').addEventListener('change', function(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      let json;
+      try{ json = JSON.parse(ev.target.result); }
+      catch(err){ showNotif('⚠️ Arquivo não é um JSON válido.'); return; }
+      renderImprovisoRef(json);
+    };
+    reader.readAsText(file);
+  });
+
+  // ---------- IMPORTAR 04-CARTOGRAFO.JSON (Referência) ----------
+  function renderCartografoRef(data){
+    let html = '';
+    (data.mapas||[]).forEach(function(mapa){
+      html += '<div class="block" style="width:340px"><h2>🗺️ '+refEsc(mapa.nome_local)+'</h2><div class="refBlock">';
+      html += '<b>Tipo:</b> '+refEsc(mapa.tipo)+' · <b>local_ref:</b> '+refEsc(mapa.local_ref)+'<br><br>';
+
+      const pf = mapa.planta_funcional || {};
+      (pf.areas||[]).forEach(function(area){
+        const camadaTag = area.camada ? ' <i>('+refEsc(area.camada)+')</i>' : '';
+        html += '<b>'+refEsc(area.nome)+'</b>'+camadaTag+'<br>';
+        html += refEsc(area.descricao)+'<br>';
+        if(area.conexoes && area.conexoes.length){
+          html += '<span style="opacity:.7;">→ Conecta com: '+refEsc(area.conexoes.join(', '))+'</span><br>';
+        }
+        html += '<br>';
+      });
+
+      if(pf.elementos_especiais && pf.elementos_especiais.length){
+        html += '<b>Elementos especiais:</b><br>';
+        pf.elementos_especiais.forEach(function(el){ html += '• '+refEsc(el)+'<br>'; });
+        html += '<br>';
+      }
+
+      if(mapa.planta_svg){
+        html += '<div style="background:#fff; border-radius:4px; padding:4px; margin-top:6px; overflow:auto;">'+mapa.planta_svg+'</div>';
+      }
+
+      html += '</div></div>';
+    });
+    document.getElementById('refCartografoContainer').innerHTML = html;
+    makeBlocksCollapsible();
+    showNotif('🗺️ Mapas importados pra Referência ('+(data.mapas||[]).length+')');
+  }
+
+  document.getElementById('btnImportCartografoUpload').addEventListener('click', function(){
+    document.getElementById('importCartografoInput').click();
+  });
+  document.getElementById('importCartografoInput').addEventListener('change', function(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      let json;
+      try{ json = JSON.parse(ev.target.result); }
+      catch(err){ showNotif('⚠️ Arquivo não é um JSON válido.'); return; }
+      renderCartografoRef(json);
+    };
+    reader.readAsText(file);
+  });
+
+  // ---------- IMPORTAR 06-DOCUMENTOS.JSON (Tela do Jogador) ----------
+  function docQuebrarLinhas(ctx, texto, larguraMax){
+    const paragrafos = String(texto||'').split('\n');
+    const linhas = [];
+    paragrafos.forEach(function(paragrafo){
+      if(paragrafo.trim()===''){ linhas.push(''); return; }
+      const palavras = paragrafo.split(' ');
+      let linhaAtual = '';
+      palavras.forEach(function(palavra){
+        const teste = (linhaAtual+' '+palavra).trim();
+        if(ctx.measureText(teste).width > larguraMax && linhaAtual){
+          linhas.push(linhaAtual);
+          linhaAtual = palavra;
+        } else {
+          linhaAtual = teste;
+        }
+      });
+      if(linhaAtual) linhas.push(linhaAtual);
+    });
+    return linhas;
+  }
+
+  function renderizarDocumentoTexto(nome, conteudo){
+    const W = 800;
+    const margemX = 60, larguraTexto = W - margemX*2;
+    const medCanvas = document.createElement('canvas');
+    const medCtx = medCanvas.getContext('2d');
+    medCtx.font = '18px Georgia, serif';
+    const linhas = docQuebrarLinhas(medCtx, conteudo, larguraTexto);
+
+    const alturaLinha = 28;
+    const topoTexto = 150;
+    const H = Math.max(500, topoTexto + linhas.length*alturaLinha + 80);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#f4ecd8';
+    ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle = '#b5a074';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(14,14,W-28,H-28);
+    ctx.strokeStyle = '#c9b896';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(24,24,W-48,H-48);
+
+    ctx.fillStyle = '#2a2318';
+    ctx.font = 'bold 30px Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(nome, W/2, 80);
+    ctx.strokeStyle = '#8a6a4a';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(margemX, 100); ctx.lineTo(W-margemX, 100); ctx.stroke();
+
+    ctx.font = '18px Georgia, serif';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#2a2318';
+    let y = topoTexto;
+    linhas.forEach(function(linha){
+      ctx.fillText(linha, margemX, y);
+      y += alturaLinha;
+    });
+
+    return canvas.toDataURL('image/png');
+  }
+
+  function importarDocumentosDoRoteiro(data){
+    const docs = data.documentos || [];
+    let adicionados = 0, comPrompt = [];
+    docs.forEach(function(doc){
+      if(doc.tipo_saida === 'pdf' && doc.conteudo_texto){
+        const img = renderizarDocumentoTexto(doc.nome||'Documento', doc.conteudo_texto);
+        addDocument(img, doc.nome||'Documento', true);
+        adicionados++;
+      } else if(doc.tipo_saida === 'mockup_imagem'){
+        comPrompt.push(doc);
+      }
+    });
+    if(comPrompt.length){
+      let html = '<div class="block" style="width:340px"><h2>🎨 Documentos que precisam de imagem gerada</h2><div class="refBlock">';
+      comPrompt.forEach(function(doc){
+        html += '<b>'+refEsc(doc.nome)+':</b><br><span style="opacity:.7; font-size:.9em;">'+refEsc(doc.prompt_mockup)+'</span><br><br>';
+      });
+      html += '</div></div>';
+      const container = document.getElementById('docsComPromptContainer');
+      if(container){ container.innerHTML = html; makeBlocksCollapsible(); }
+    }
+    showNotif('📄 '+adicionados+' documento(s) importado(s), pronto(s) pra mostrar na tela do jogador'+(comPrompt.length ? ' ('+comPrompt.length+' precisam de imagem gerada à parte)' : ''));
+  }
+
+  document.getElementById('btnImportDocumentosUpload').addEventListener('click', function(){
+    document.getElementById('importDocumentosInput').click();
+  });
+  document.getElementById('importDocumentosInput').addEventListener('change', function(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      let json;
+      try{ json = JSON.parse(ev.target.result); }
+      catch(err){ showNotif('⚠️ Arquivo não é um JSON válido.'); return; }
+      importarDocumentosDoRoteiro(json);
+    };
+    reader.readAsText(file);
+  });
+
+  // ---------- IMPORTAR 05-SONOPLASTIA.JSON (sugestões ao lado do soundboard) ----------
+  function importarSonoplastiaDoRoteiro(data){
+    const entradas = data.sonoplastia || [];
+    let html = '<div class="block" style="width:300px"><h2>📥 Sugestões de Trilha (do Roteiro)</h2>';
+    html += '<p class="hint">Clique numa busca pra abrir o YouTube já pesquisando — copie o link do vídeo escolhido e cole em "Trilha Sonora" ou "Efeito Sonoro" acima.</p>';
+    html += '<div class="refBlock">';
+    entradas.forEach(function(cena){
+      html += '<b>Cena '+refEsc(cena.cena)+' — '+refEsc(cena.nome_cena)+'</b><br>';
+      (cena.trilha_sonora||[]).forEach(function(t){
+        const url = 'https://www.youtube.com/results?search_query='+encodeURIComponent(t.busca_youtube||'');
+        html += '🎵 '+refEsc(t.momento)+': <a href="'+url+'" target="_blank" style="color:var(--gold);">'+refEsc(t.busca_youtube)+'</a><br>';
+      });
+      if(cena.efeitos_sonoros && cena.efeitos_sonoros.length){
+        html += '🔊 Efeitos: '+refEsc(cena.efeitos_sonoros.join(', '))+'<br>';
+      }
+      html += '<br>';
+    });
+    html += '</div></div>';
+    document.getElementById('refSonoplastiaContainer').innerHTML = html;
+    makeBlocksCollapsible();
+    showNotif('🎵 Sugestões de trilha importadas ('+entradas.length+' cena(s))');
+  }
+
+  document.getElementById('btnImportSonoplastiaUpload').addEventListener('click', function(){
+    document.getElementById('importSonoplastiaInput').click();
+  });
+  document.getElementById('importSonoplastiaInput').addEventListener('change', function(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      let json;
+      try{ json = JSON.parse(ev.target.result); }
+      catch(err){ showNotif('⚠️ Arquivo não é um JSON válido.'); return; }
+      importarSonoplastiaDoRoteiro(json);
+    };
+    reader.readAsText(file);
+  });
 
 })();
 </script>
