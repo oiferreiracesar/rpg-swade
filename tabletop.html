@@ -1456,6 +1456,17 @@
     </div>
 
     <div class="block">
+      <h2>🎭 Visão Geral da Campanha</h2>
+      <p class="hint">Carregue o 00-campanha.json (só existe se essa oneshot faz parte de uma campanha maior) — vilão da campanha, NPCs recorrentes e lista de sessões.</p>
+      <div class="row">
+        <label class="fileBtn"><button class="wide">+ Importar Campanha (JSON)</button>
+          <input type="file" id="campanhaInput" accept="application/json,.json">
+        </label>
+      </div>
+      <div id="campanhaContent"></div>
+    </div>
+
+    <div class="block">
       <h2>📖 Roteiro da Aventura</h2>
       <p class="hint">Carregue o 01-roteirista.json gerado pelo pipeline — premissa, cenas, dificuldades e finais aparecem aqui pra consulta rápida, sem precisar abrir outro documento.</p>
       <div class="row">
@@ -1464,6 +1475,17 @@
         </label>
       </div>
       <div id="roteiroContent"></div>
+    </div>
+
+    <div class="block">
+      <h2>🎬 Cena Atual</h2>
+      <p class="hint">Cruza automaticamente Roteiro, Cartógrafo, Sonoplastia e Documentos já importados (em qualquer aba) pela mesma cena — não precisa importar de novo aqui.</p>
+      <div class="row" style="align-items:center; justify-content:center; gap:12px;">
+        <button id="btnCenaAtualAnterior" style="padding:6px 14px;">◀</button>
+        <span id="cenaAtualNumero" style="font-size:1.4rem; font-weight:bold; min-width:36px; text-align:center;">1</span>
+        <button id="btnCenaAtualProxima" style="padding:6px 14px;">▶</button>
+      </div>
+      <div id="cenaAtualConteudo" style="margin-top:10px;"></div>
     </div>
 
   </div>
@@ -2536,6 +2558,14 @@
   }
 
   let importedNpcs = [];
+  // Dados brutos dos JSONs importados em varias abas -- guardados aqui pra
+  // o painel "Cena Atual" (Resumao) poder cruzar tudo pelo numero da cena,
+  // sem precisar reimportar nada.
+  let dadosRoteiro = null;
+  let dadosCartografo = null;
+  let dadosSonoplastia = null;
+  let dadosDocumentosRoteiro = null;
+
   function renderImportedNpcList(){
     const list = document.getElementById('importedNpcList');
     if(!list) return;
@@ -2554,10 +2584,20 @@
         '<label class="charDownBtn'+(o.imgDown?' has':'')+'" title="Imagem alternativa: caído/derrotado (troca sozinho quando marcar Incapacitado)">'+(o.imgDown?'🖼️✓':'🖼️+')+
           '<input type="file" accept="image/*"></label>'+
         '<button data-act="place" title="Colocar no mapa" style="padding:5px 8px;font-size:.65rem;flex-shrink:0;">📍</button>'+
+        (o.cat==='monster' ? '<button data-act="addinit" title="Adicionar na Ordem da Rodada (Mesa)" style="padding:5px 8px;font-size:.65rem;flex-shrink:0;">⚔️</button>' : '')+
         '<button data-act="del" style="padding:5px 8px;font-size:.65rem;flex-shrink:0;">🗑</button>';
       row.querySelector('[data-act="place"]').addEventListener('click', ()=>{
         addToken(o.imgSrc?null:o.emoji, o.label, o.cat, o.color, o.imgSrc, Object.assign({}, o.opts, { imgDown: o.imgDown }));
       });
+      const addInitBtn = row.querySelector('[data-act="addinit"]');
+      if(addInitBtn){
+        addInitBtn.addEventListener('click', ()=>{
+          combatants.push({ name: o.label });
+          initOrder = [];
+          renderInitList();
+          showNotif('⚔️ '+o.label+' adicionado na Ordem da Rodada (aba Mesa)');
+        });
+      }
       row.querySelector('.charNameInput').addEventListener('input', e=>{ o.label = e.target.value; });
       wireTrocarImagem(row, o, 'imgSrc', renderImportedNpcList);
       const downInput = row.querySelector('.charDownBtn input');
@@ -4281,8 +4321,10 @@
       let data;
       try{ data = JSON.parse(ev.target.result); }
       catch(err){ alert('Arquivo inválido: não é um JSON válido.'); return; }
+      dadosRoteiro = data;
       document.getElementById('roteiroContent').innerHTML = construirHtmlRoteiro(data);
       showNotif('📖 Roteiro carregado');
+      if(typeof renderCenaAtual === 'function') renderCenaAtual();
     };
     reader.readAsText(file);
     e.target.value = '';
@@ -7911,6 +7953,7 @@
 
   // ---------- IMPORTAR 04-CARTOGRAFO.JSON (Referência) ----------
   function renderCartografoRef(data){
+    dadosCartografo = data;
     let html = '';
     (data.mapas||[]).forEach(function(mapa){
       html += '<div class="block" style="width:340px"><h2>🗺️ '+refEsc(mapa.nome_local)+'</h2><div class="refBlock">';
@@ -7942,6 +7985,7 @@
     document.getElementById('refCartografoContainer').innerHTML = html;
     makeBlocksCollapsible();
     showNotif('🗺️ Mapas importados pra Referência ('+(data.mapas||[]).length+')');
+    if(typeof renderCenaAtual === 'function') renderCenaAtual();
   }
 
   document.getElementById('btnImportCartografoUpload').addEventListener('click', function(){
@@ -8028,6 +8072,7 @@
   }
 
   function importarDocumentosDoRoteiro(data){
+    dadosDocumentosRoteiro = data;
     const docs = data.documentos || [];
     let adicionados = 0, comPrompt = [];
     docs.forEach(function(doc){
@@ -8049,6 +8094,7 @@
       if(container){ container.innerHTML = html; makeBlocksCollapsible(); }
     }
     showNotif('📄 '+adicionados+' documento(s) importado(s), pronto(s) pra mostrar na tela do jogador'+(comPrompt.length ? ' ('+comPrompt.length+' precisam de imagem gerada à parte)' : ''));
+    if(typeof renderCenaAtual === 'function') renderCenaAtual();
   }
 
   document.getElementById('btnImportDocumentosUpload').addEventListener('click', function(){
@@ -8069,6 +8115,7 @@
 
   // ---------- IMPORTAR 05-SONOPLASTIA.JSON (sugestões ao lado do soundboard) ----------
   function importarSonoplastiaDoRoteiro(data){
+    dadosSonoplastia = data;
     const entradas = data.sonoplastia || [];
     let html = '<div class="block" style="width:300px"><h2>📥 Sugestões de Trilha (do Roteiro)</h2>';
     html += '<p class="hint">Clique numa busca pra abrir o YouTube já pesquisando — copie o link do vídeo escolhido e cole em "Trilha Sonora" ou "Efeito Sonoro" acima.</p>';
@@ -8088,6 +8135,7 @@
     document.getElementById('refSonoplastiaContainer').innerHTML = html;
     makeBlocksCollapsible();
     showNotif('🎵 Sugestões de trilha importadas ('+entradas.length+' cena(s))');
+    if(typeof renderCenaAtual === 'function') renderCenaAtual();
   }
 
   document.getElementById('btnImportSonoplastiaUpload').addEventListener('click', function(){
@@ -8104,6 +8152,135 @@
       importarSonoplastiaDoRoteiro(json);
     };
     reader.readAsText(file);
+  });
+
+  // ---------- CENA ATUAL (cruza Roteiro + Cartografo + Sonoplastia + Documentos) ----------
+  let cenaAtualNum = 1;
+
+  function renderCenaAtual(){
+    const numEl = document.getElementById('cenaAtualNumero');
+    if(!numEl) return; // painel ainda nao existe no DOM nesse momento
+    numEl.textContent = cenaAtualNum;
+    let html = '';
+    let achouAlgo = false;
+
+    if(dadosRoteiro && Array.isArray(dadosRoteiro.cenas)){
+      const cena = dadosRoteiro.cenas.find(function(c){ return c.numero === cenaAtualNum; });
+      if(cena){
+        achouAlgo = true;
+        html += '<div class="refBlock" style="margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid var(--line);">';
+        html += '<b>📖 '+refEsc(cena.nome)+'</b><br>';
+        if(cena.objetivo) html += '<i>Objetivo:</i> '+refEsc(cena.objetivo)+'<br>';
+        if(cena.texto_leitura) html += '<div style="opacity:.8; margin-top:4px;">'+refEsc(cena.texto_leitura)+'</div>';
+        if(cena.dificuldades && cena.dificuldades.length){
+          html += '<div style="margin-top:6px;"><b>Dificuldades:</b><br>';
+          cena.dificuldades.forEach(function(d){
+            html += '• '+refEsc(d.acao)+' — '+refEsc(d.pericia)+' (mod. '+refEsc(d.modificador)+')<br>';
+          });
+          html += '</div>';
+        }
+        html += '</div>';
+      }
+    }
+
+    if(dadosCartografo && Array.isArray(dadosCartografo.mapas)){
+      const mapa = dadosCartografo.mapas.find(function(m){ return (m.cenas_onde_aparece||[]).indexOf(cenaAtualNum) !== -1; });
+      if(mapa){
+        achouAlgo = true;
+        const areas = (mapa.planta_funcional && mapa.planta_funcional.areas) || [];
+        html += '<div class="refBlock" style="margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid var(--line);">';
+        html += '<b>🗺️ '+refEsc(mapa.nome_local)+'</b><br>';
+        areas.forEach(function(a){
+          html += '• '+refEsc(a.nome)+': '+refEsc(a.descricao)+'<br>';
+        });
+        html += '</div>';
+      }
+    }
+
+    if(dadosSonoplastia && Array.isArray(dadosSonoplastia.sonoplastia)){
+      const som = dadosSonoplastia.sonoplastia.find(function(s){ return s.cena === cenaAtualNum; });
+      if(som){
+        achouAlgo = true;
+        html += '<div class="refBlock" style="margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid var(--line);">';
+        html += '<b>🎵 Trilha sugerida</b><br>';
+        (som.trilha_sonora||[]).forEach(function(t){
+          const url = 'https://www.youtube.com/results?search_query='+encodeURIComponent(t.busca_youtube||'');
+          html += refEsc(t.momento)+': <a href="'+url+'" target="_blank" style="color:var(--gold);">'+refEsc(t.busca_youtube)+'</a><br>';
+        });
+        if(som.efeitos_sonoros && som.efeitos_sonoros.length){
+          html += '🔊 '+refEsc(som.efeitos_sonoros.join(', '))+'<br>';
+        }
+        html += '</div>';
+      }
+    }
+
+    if(dadosDocumentosRoteiro && Array.isArray(dadosDocumentosRoteiro.documentos)){
+      const docs = dadosDocumentosRoteiro.documentos.filter(function(d){ return d.cena_onde_aparece === cenaAtualNum; });
+      if(docs.length){
+        achouAlgo = true;
+        html += '<div class="refBlock">';
+        html += '<b>📄 Documentos desta cena</b><br>';
+        docs.forEach(function(d){
+          html += '• '+refEsc(d.nome)+' <span style="opacity:.6;">('+refEsc(d.tipo_saida)+')</span><br>';
+        });
+        html += '</div>';
+      }
+    }
+
+    if(!achouAlgo){
+      html = '<p class="hint">Nada encontrado pra cena '+cenaAtualNum+' nos dados já importados (Roteiro, Cartógrafo, Sonoplastia, Documentos) — importe em suas respectivas abas, ou avance/volte pra outra cena.</p>';
+    }
+
+    document.getElementById('cenaAtualConteudo').innerHTML = html;
+  }
+
+  document.getElementById('btnCenaAtualAnterior').addEventListener('click', function(){
+    cenaAtualNum = Math.max(1, cenaAtualNum-1);
+    renderCenaAtual();
+  });
+  document.getElementById('btnCenaAtualProxima').addEventListener('click', function(){
+    cenaAtualNum++;
+    renderCenaAtual();
+  });
+  renderCenaAtual();
+
+  // ---------- IMPORTAR 00-CAMPANHA.JSON (visão geral) ----------
+  document.getElementById('campanhaInput').addEventListener('change', function(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      let data;
+      try{ data = JSON.parse(ev.target.result); }
+      catch(err){ alert('Arquivo inválido: não é um JSON válido.'); return; }
+      const c = data.campanha || {};
+      let html = '';
+      if(c.vilao_da_campanha){
+        html += '<div class="refBlock" style="margin-bottom:10px;">';
+        html += '<b>🎭 '+refEsc(c.vilao_da_campanha.nome)+'</b><br>';
+        html += '<i>Verdade por trás:</i> '+refEsc(c.vilao_da_campanha.verdade_por_tras)+'<br>';
+        html += '<span style="opacity:.6;">⚠️ Revelação final — não compartilhe antes da última sessão: '+refEsc(c.vilao_da_campanha.revelacao_final)+'</span>';
+        html += '</div>';
+      }
+      if(c.npcs_recorrentes && c.npcs_recorrentes.length){
+        html += '<div class="refBlock" style="margin-bottom:10px;"><b>NPCs Recorrentes</b><br>';
+        c.npcs_recorrentes.forEach(function(n){
+          html += '• <b>'+refEsc(n.nome)+'</b> ('+refEsc(n.papel)+'): '+refEsc(n.arco)+'<br>';
+        });
+        html += '</div>';
+      }
+      if(c.sessoes && c.sessoes.length){
+        html += '<div class="refBlock"><b>Sessões</b><br>';
+        c.sessoes.forEach(function(s){
+          html += (s.numero!=null?s.numero:'?')+'. '+refEsc(s.titulo)+' <span style="opacity:.6;">('+refEsc(s.papel_no_arco)+')</span><br>';
+        });
+        html += '</div>';
+      }
+      document.getElementById('campanhaContent').innerHTML = html || '<p class="hint">Nenhum dado encontrado no arquivo.</p>';
+      showNotif('🎭 Campanha carregada');
+    };
+    reader.readAsText(file);
+    e.target.value = '';
   });
 
 })();
