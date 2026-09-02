@@ -35,18 +35,16 @@
   <h2>Masmorra 3D — v3</h2>
 
   <h3>1. Importar mapa</h3>
-  <label class="fileBtn"><button class="wide">📂 Escolher 04-cartografo.json</button>
+  <button class="wide" id="btnEscolherCartografo">📂 Escolher 04-cartografo.json</button>
     <input type="file" id="inputCartografo" accept="application/json,.json">
-  </label>
   <div id="seletorMapa"></div>
 
   <h3>2. Salas (névoa de guerra)</h3>
   <div id="listaSalas"><span style="opacity:.6;">Importe um mapa primeiro.</span></div>
 
   <h3>3. NPCs e Tokens</h3>
-  <label class="fileBtn"><button class="wide">📂 Escolher 03-npcs.json</button>
+  <button class="wide" id="btnEscolherNpcs">📂 Escolher 03-npcs.json</button>
     <input type="file" id="inputNpcs" accept="application/json,.json">
-  </label>
   <div id="listaNpcs"></div>
 
   <h3>4. Tela do Jogador</h3>
@@ -339,6 +337,13 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     };
     leitor.readAsDataURL(arquivo);
   }
+
+  document.getElementById('btnEscolherCartografo').addEventListener('click', () => {
+    document.getElementById('inputCartografo').click();
+  });
+  document.getElementById('btnEscolherNpcs').addEventListener('click', () => {
+    document.getElementById('inputNpcs').click();
+  });
 
   document.getElementById('inputCartografo').addEventListener('change', e => {
     const arquivo = e.target.files[0];
